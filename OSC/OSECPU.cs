@@ -11,7 +11,8 @@ namespace OSC
     
     public enum OSECode2
     {
-        Cond = 0x04
+        Cond = 0x04,
+        Assert = 0x0D
     }
     
     public enum OSECode3
@@ -30,12 +31,16 @@ namespace OSC
         Multi = 0x16,
         ShiftL = 0x18,
         ShiftR = 0x19,
+        PLimLowr = 0x1C,
+        PLimUpr = 0x1D,
         CompEq = 0x20,
         CompNeq = 0x21,
         CompLess = 0x22,
         CompGreEq = 0x23,
         CompLesEq = 0x24,
         CompGret = 0x25,
+        TestZero = 0x26,
+        TestNZero = 0x27,
         PCompEq = 0x28,
         PCompNeq = 0x29,
         PCompLess = 0x2A,
@@ -57,5 +62,10 @@ namespace OSC
         StoreMem = 0x09,
         PAdd = 0x0E,
         PDiff = 0x0F
+    }
+
+    public enum OSECode11
+    {
+        PCast = 0x1F
     }
 }

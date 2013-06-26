@@ -1,7 +1,8 @@
-﻿using System.Linq;
-using System.Collections.Generic;
+﻿using Alice.Extensions;
 using System;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace OSC
 {
@@ -16,7 +17,7 @@ namespace OSC
         {
             writer = new BinaryWriter(output);        
             // write signsture (OSE1, NOP)
-            this.Write(0x05, 0xE1, 0x00);
+            Emit(0x05, 0xE1, 0x00);
         }
         
         public void Dispose()
@@ -25,9 +26,9 @@ namespace OSC
             writer.Dispose();
         }
         
-        void Write(params byte[] buf)
+        public void Emit(params byte[] buf)
         {
-            writer.Write(buf);
+        	writer.Write(buf);
         }
         
         public void Emit(OSECode1 code)
@@ -37,35 +38,54 @@ namespace OSC
         
         public void Emit(OSECode2 code, byte value)
         {
-            this.Write((byte)code, value);
+            Emit((byte)code, value);
         }
         
         public void Emit(OSECode3 code, byte left, byte right)
         {
             if(code == OSECode3.PCopy)
-                this.Write((byte)code, left, right);
+                Emit((byte)code, left, right);
             
             else
-                this.Write((byte)code, left, right, 0xFF);
+                Emit((byte)code, left, right, 0xFF);
         }
         
         public void Emit(OSECode4 code, byte to, byte left, byte right)
         {
-            this.Write((byte)code, to, left, right);
+            Emit((byte)code, to, left, right);
         }
         
         public void Emit(OSECode6 code, byte num, int value)
         {
-            this.Write((byte)code, num);
+            Emit((byte)code, num);
             writer.Write(BitConverter.GetBytes(value).Reverse().Select(x => x).ToArray());
         }
         
-        
-        
         public void EmitRem(byte remCode, params byte[] buf)
         {
-            this.Write(0xFE, remCode);
+            Emit(0xFE, remCode);
             writer.Write(buf.Take(remCode).ToArray());
+        }
+
+        public void EmitMacro(string macro, MacroValues values = null, params byte[] buf)
+        {
+            var conv = macro;
+            if(macro != null)
+            foreach (var pair in values.Data)
+                conv = conv.Replace("{" + pair.Key + "}", 
+                    pair.Value.GetBytes()
+                        .Select(x => x.ToString("X2"))
+                        .JoinToString(" "));
+            conv = string.Format(conv, buf.Select(x => x.ToString("X2")).ToArray());
+            Emit(conv.Split(' ').Select(x => byte.Parse(x, NumberStyles.HexNumber)).ToArray());
+        }
+    }
+
+    public static class BytesExtension
+    {
+        public static byte[] GetBytes(this int source)
+        {
+            return BitConverter.GetBytes(source).Reverse().Select(x => x).ToArray();
         }
     }
 }

@@ -6,167 +6,78 @@ using System.Text.RegularExpressions;
 
 namespace Alice.Extensions
 {
-    /// <summary>
-    /// Alice's extension methods.
-    /// </summary>
-    public static class Extensions
+    public static class EnumerableExtensions
     {
-        /// <summary>
-        /// Gets an enumerable object whose element is included in both of enumerable objects.
-        /// </summary>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <param name='target'>
-        /// The enumerable object.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static IEnumerable<T> And<T>(this IEnumerable<T> e, IEnumerable<T> target)
+        public static IEnumerable<T> And<T>(this IEnumerable<T> source, IEnumerable<T> target)
         {
             return 
-                from x in e
+                from x in source
                 from y in target
                 where x.Equals(y)
                 select x;
         }
-        
-        /// <summary>
-        /// Gets all combinations of each element of this and each element on the specified enumerable object.
-        /// <example>
-        /// new []{0,1,2}.Conbinate(new []{"a","b"}) -> {0,"a"},{0,"b"},{1,"a"},{1,"b"},{2,"a"},{2,"b"}
-        /// </example>
-        /// </summary>
-        /// <param name="e">The enumerable object.</param>
-        /// <param name="Target">The enumerable object.</param>
-        /// <typeparam name="T1">The 1st type parameter.</typeparam>
-        /// <typeparam name="T2">The 2nd type parameter.</typeparam>
-        /// <returns>Tuples of conbinated objects.</returns>
-        public static IEnumerable<Tuple<T1,T2>> Conbinate<T1, T2>(this IEnumerable<T1> e, IEnumerable<T2> target)
+
+        public static IEnumerable<Tuple<T1,T2>> Conbinate<T1, T2>(this IEnumerable<T1> source, IEnumerable<T2> target)
         {
             return
-                from x in e
+                from x in source
                 from y in target
                 select Tuple.Create(x, y);
         }
+
+        public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T> action)
+        {
+            foreach (T item in source)
+            {
+                action(item);
+                yield return item;
+            }
+        }
         
-        /// <summary>
-        /// Enumerates the lines of the specified stream reader.
-        /// </summary>
-        /// <returns>
-        /// The lines.
-        /// </returns>
-        /// <param name='streamReader'>
-        /// Stream reader.
-        /// </param>
         public static IEnumerable<string> EnumerateLines(this StreamReader streamReader)
         {
             while(!streamReader.EndOfStream)
                 yield return streamReader.ReadLine();
         }
         
-        /// <summary>
-        /// Performs the specified action on each element on the enumerable object.
-        /// </summary>
-        /// <param name="e">The enumerable object.</param>
-        /// <param name="Action">Action.</param>
-        /// <typeparam name="T">The 1st type parameter.</typeparam>
-        public static void ForEach<T>(this IEnumerable<T> e, Action<T> action)
+        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {
-            foreach(T item in e)
+            foreach(T item in source)
                 action(item);
         }
         
-        /// <summary>
-        /// Joins the enumerable object to string.
-        /// </summary>
-        /// <returns>
-        /// The string.
-        /// </returns>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        public static string JoinToString<T>(this IEnumerable<T> e)
+        public static string JoinToString<T>(this IEnumerable<T> source)
         {
-            return string.Concat<T>(e);
+            return string.Concat<T>(source);
         }
         
-        /// <summary>
-        /// Joins the enumerable object to string.
-        /// </summary>
-        /// <returns>
-        /// The string.
-        /// </returns>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <param name='separator'>
-        /// Separator.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static string JoinToString<T>(this IEnumerable<T> e, string separator)
+        public static string JoinToString<T>(this IEnumerable<T> source, string separator)
         {
-            return string.Join<T>(separator, e);
+            return string.Join<T>(separator, source);
         }
                  
-        /// <summary>
-        /// Gets the enumerable object whose element is included in either this and the specified enumerable object.
-        /// </summary>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <param name='target'>
-        /// The enumerable object.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static IEnumerable<T> Or<T>(this IEnumerable<T> e, IEnumerable<T> target)
+        public static IEnumerable<T> Or<T>(this IEnumerable<T> source, IEnumerable<T> target)
         {
-            return e.Union(target);
+            return source.Union(target);
         }
         
-        /// <summary>
-        /// Randomize the specified enumerable object.
-        /// </summary>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static IEnumerable<T> Randomize<T>(this IEnumerable<T> e)
+        public static IEnumerable<T> Randomize<T>(this IEnumerable<T> source)
         {
             IEnumerable<T> x = new T[0];
             var randomize = new Random();
-            while(e.Any())
+            while(source.Any())
             {
-                var rand = randomize.Next(e.Count());
-                x = x.Concat(new []{e.Skip(rand).First()});               
-                e = e.Skip(rand, 1);
+                var rand = randomize.Next(source.Count());
+                x = x.Concat(new []{source.Skip(rand).First()});               
+                source = source.Skip(rand, 1);
             }
             return x;
         }
         
-        /// <summary>
-        /// Skip the element that is specified by the predicate.
-        /// </summary>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <param name='predicate'>
-        /// Predicate.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static IEnumerable<T> SkipWhile<T>(this IEnumerable<T> e, Func<T,int,bool> predicate)
+        public static IEnumerable<T> SkipWhile<T>(this IEnumerable<T> source, Func<T,int,bool> predicate)
         {
             var cnt = 0;
-            foreach(var x in e)
+            foreach(var x in source)
             {
                 if(!predicate(x, cnt))
                     yield return x;
@@ -174,81 +85,31 @@ namespace Alice.Extensions
             }
         }
         
-        /// <summary>
-        /// Skip the element that is specified by the start index and the range.
-        /// </summary>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <param name='start'>
-        /// Start index.
-        /// </param>
-        /// <param name='range'>
-        /// Range.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static IEnumerable<T> Skip<T>(this IEnumerable<T> e, int start, int range)
+        public static IEnumerable<T> Skip<T>
+            (this IEnumerable<T> source, int start, int range)
         {
-            return SkipWhile(e, (_, x) => x >= start && x < start + range);
+            return SkipWhile(source, (_, x) => x >= start && x < start + range);
         }
         
-        /// <summary>
-        /// Split each element on the enumerable object.
-        /// </summary>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <param name='separator'>
-        /// Separator.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> e, params T[] separator)
+        public static IEnumerable<IEnumerable<T>> Split<T>
+            (this IEnumerable<T> source, params T[] separator)
         {
-            return Split(e, separator.Contains);
+            return Split(source, separator.Contains);
         }
         
-        /// <summary>
-        /// Split each element on the enumerable object.
-        /// </summary>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <param name='separator'>
-        /// Separator.
-        /// </param>
-        /// <param name='options'>
-        /// Options.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> e, T[] separator, StringSplitOptions options)
+        public static IEnumerable<IEnumerable<T>> Split<T>
+            (this IEnumerable<T> source, T[] separator, StringSplitOptions options)
         {
-            return Split(e, separator.Contains)
+            return Split(source, separator.Contains)
                   .Where(x => options == StringSplitOptions.RemoveEmptyEntries ? x.Any() : true);
         }
         
-        /// <summary>
-        /// Split each element on the enumerable object.
-        /// </summary>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <param name='separator'>
-        /// Separator.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> e, Func<T,bool> separator)
+        public static IEnumerable<IEnumerable<T>> Split<T>
+            (this IEnumerable<T> source, Func<T,bool> separator)
         {
             IEnumerable<T> x = new T[0];
             var count = 0;
-            foreach(var t in e)
+            foreach(var t in source)
             {
                 count++;
                 if(separator(t))
@@ -259,102 +120,88 @@ namespace Alice.Extensions
                 else
                 {
                     x = x.Concat(new T[]{t});
-                    if(!e.Skip(count).Any())
+                    if(!source.Skip(count).Any())
                         yield return x;
                 }
             }
         }
         
-        /// <summary>
-        /// Split each element on the enumerable object.
-        /// </summary>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <param name='separator'>
-        /// Separator.
-        /// </param>
-        /// <param name='options'>
-        /// Options.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static IEnumerable<IEnumerable<T>> Split<T>(this IEnumerable<T> e, Func<T,bool> separator, StringSplitOptions options)
+        public static IEnumerable<IEnumerable<T>> Split<T>
+            (this IEnumerable<T> source, Func<T,bool> separator, StringSplitOptions options)
         {
-            return Split(e, separator)
+            return Split(source, separator)
                   .Where(x => options == StringSplitOptions.RemoveEmptyEntries ? x.Any() : true);
         }
         
-        /// <summary>
-        /// Split the specified text by the regexes.
-        /// </summary>
-        /// <param name='e'>
-        /// The text.
-        /// </param>
-        /// <param name='separator'>
-        /// Regex separators.
-        /// </param>
-        public static IEnumerable<string> Split(this string e, params Regex[] separator)
-        {
-            return Split(e, separator, StringSplitOptions.None);
-        }
         
-        /// <summary>
-        /// Split the specified text by the regexes.
-        /// </summary>
-        /// <param name='e'>
-        /// The text.
-        /// </param>
-        /// <param name='separator'>
-        /// Regex separators.
-        /// </param>
-        /// <param name='options'>
-        /// Options.
-        /// </param>
-        public static IEnumerable<string> Split(this string e, IEnumerable<Regex> separator, StringSplitOptions options)
+        public static IEnumerable<T> Xor<T>(this IEnumerable<T> source, IEnumerable<T> target)
         {
-            return 
+            return source.Where(x => !target.Any(y => y.Equals(x)))
+                    .Concat(target.Where(x => !source.Any(y => y.Equals(x))));
+        }
+
+    }
+
+    public static class StringExtension
+    {
+
+        public static IEnumerable<string> Split(this string source, params Regex[] separator)
+        {
+            return Split(source, separator, StringSplitOptions.None);
+        }
+
+        public static IEnumerable<string> Split
+            (this string source, IEnumerable<Regex> separator, StringSplitOptions options)
+        {
+            return
                 from x in separator
-                from y in ToEnumerable(x.Matches(e))
+                from y in ToEnumerable(x.Matches(source))
                 select y.Value;
         }
-        
-        static IEnumerable<Match> ToEnumerable(this MatchCollection e)
+
+        static IEnumerable<Match> ToEnumerable(this MatchCollection source)
         {
-            foreach(var x in e)
+            foreach (var x in source)
                 yield return (Match)x;
         }
-        
-        /// <summary>
-        /// Performs "Exclusive OR" to the elements in both of this and specified enumerable object.
-        /// </summary>
-        /// <param name='e'>
-        /// The enumerable object.
-        /// </param>
-        /// <param name='target'>
-        /// The enumerable object.
-        /// </param>
-        /// <typeparam name='T'>
-        /// The 1st type parameter.
-        /// </typeparam>
-        public static IEnumerable<T> Xor<T>(this IEnumerable<T> e, IEnumerable<T> target)
-        {
-            return e.Where(x => !target.Any(y => y.Equals(x)))
-                    .Concat(target.Where(x => !e.Any(y => y.Equals(x))));
-        }
-        
-        /* 
-        /// <summary>
-     /// Converts camelCase text to snake_case.
-     /// </summary>
-     /// <returns>The snake_case text.</returns>
-     /// <param name="e">The camelCase text.</param>
-     public static string ToSnakeCase(this string e)
-     {
-         return e.Select(x => char.IsUpper(x) ? "_" + x.ToString().ToLower() : x.ToString()).JoinToString();
-     }*/
+    }
 
+    public static class DisposableExtensions
+    {
+        public class Using<T>
+            where T : IDisposable
+        {
+            public T Source { get; set; }
+
+            public Using(T source)
+            {
+                Source = source;
+            }
+
+        }
+
+        public static Using<T> ToUsing<T>(this T source)
+            where T : IDisposable
+        {
+            return new Using<T>(source);
+        }
+
+        public static TResult SelectMany<T, TSecond, TResult>
+            (this Using<T> source, Func<T, Using<TSecond>> second, Func<T, TSecond, TResult> selector)
+            where T : IDisposable
+            where TSecond : IDisposable
+        {
+            using (source.Source)
+            using (var s = second(source.Source).Source)
+                return selector(source.Source, s);
+        }
+
+        public static TResult Select<T, TResult>(this Using<T> source, Func<T, TResult> selector)
+            where T : IDisposable
+        {
+            using (source.Source)
+                return selector(source.Source);
+        }        
     }
 }
 

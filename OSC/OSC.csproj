@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Alice.Extensions.cs" />
+    <Compile Include="Macro.cs" />
     <Compile Include="OSECPU.cs" />
     <Compile Include="OSEGenerator.cs" />
     <Compile Include="Program.cs" />

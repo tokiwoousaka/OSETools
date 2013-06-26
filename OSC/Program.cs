@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System;
 using System.Text;
 using System.IO;
+using Alice.Extensions;
 
 namespace OSC
 {
@@ -10,24 +11,27 @@ namespace OSC
     {
         public static void Main()
         {
-            var sb = new StringBuilder();
             using(var str = File.Open("test.ose", FileMode.OpenOrCreate, FileAccess.Write))
             using(var ose = new OSEGenerator(str))
             {
+                ose.Emit(OSECode6.Label, 0, 0x1ABE1);
                 ose.Emit(OSECode6.LoadImm, 0x00, 0x12345678);
                 ose.Emit(OSECode6.LoadImm, 0x01, 0x24682468);
                 ose.Emit(OSECode4.CompLess, 0x02, 0x00, 0x01);
+                ose.Emit(OSECode3.Copy, 0x03, 0x02);
+                ose.EmitMacro(Macro.CompIf, new MacroValues(to => 0x1ABE1), (byte)OSECode4.CompEq, 0x01, 0x02);
             }
-            
-            using(var str = File.OpenRead("test.ose"))
-            using(var rdr = new BinaryReader(str))
-            {
-                foreach(var b in rdr.ReadBytes((int)str.Length))
-                    Console.Write(b.ToString("X2") + " ");
-                // 05 E1 00 02 00 12 34 56 78 02 01 24 68 24 68 22 02 00 01
-            }
+
+            var read = from x in File.OpenRead("test.ose").ToUsing()
+                       from y in new BinaryReader(x).ToUsing()
+                       select y.ReadBytes((int)x.Length);
+
+            foreach (var b in read)
+                Console.Write(b.ToString("X2") + " ");
             
             Console.Read();
         }
     }
+
+
 }
