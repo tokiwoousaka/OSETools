@@ -1,0 +1,21 @@
+﻿gcd : [int -> int => int]
+
+main
+    result = gcd(1547, 2093)
+    print(result)
+end
+
+gcd (x, y)
+    // x > yになるように入れ替える
+    tmp = x
+    x = ? x < y
+        | true -> y
+        | false -> x
+    y = ? tmp == x
+        | true -> y
+        | false -> tmp 
+    // 非0なら再帰
+    ? x % y
+    | 0 -> x
+    | () -> gcd(y, x % y)
+end

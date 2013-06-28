@@ -12,10 +12,28 @@ namespace OSC
     public class OSEGenerator : IDisposable
     {
         BinaryWriter writer;
+
+        public Numbers<int> Labels { get; set; }
+        public Numbers<byte> LocalRegister { get; set; }
+        public Numbers<byte> GlobalRegister { get; set; }
+        public Numbers<byte> FuncRegister { get; set; }
+        public Numbers<byte> LocalPegister { get; set; }
+        public Numbers<byte> GlobalPegister { get; set; }
+        public Numbers<byte> FuncPegister { get; set; }
         
         public OSEGenerator(Stream output)
         {
-            writer = new BinaryWriter(output);        
+            writer = new BinaryWriter(output);
+            
+            // (r|p)egisters
+            Labels = new Numbers<int>(0, 4096, x => x);
+            LocalRegister = new Numbers<byte>(0, 32, x => (byte)x);
+            LocalPegister = new Numbers<byte>(0, 32, x => (byte)x);
+            GlobalRegister = new Numbers<byte>(32, 8, x => (byte)x);
+            GlobalPegister = new Numbers<byte>(32, 8, x => (byte)x);
+            FuncRegister = new Numbers<byte>(48, 12, x => (byte)x);
+            FuncPegister = new Numbers<byte>(49, 12, x => (byte)x);
+
             // write signsture (OSE1, NOP)
             Emit(0x05, 0xE1, 0x00);
         }
@@ -70,7 +88,7 @@ namespace OSC
         public void EmitMacro(string macro, MacroValues values = null, params byte[] buf)
         {
             var conv = macro;
-            if(macro != null)
+            if(values != null)
             foreach (var pair in values.Data)
                 conv = conv.Replace("{" + pair.Key + "}", 
                     pair.Value.GetBytes()

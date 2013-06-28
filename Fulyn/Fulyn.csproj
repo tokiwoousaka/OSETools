@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
   <PropertyGroup>
-    <ProjectGuid>{EF09B928-82F4-493A-8F23-44FA296A007E}</ProjectGuid>
+    <ProjectGuid>{29FA0D3E-0FE1-4A19-89C5-9A8A20990B31}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <OutputType>Exe</OutputType>
-    <RootNamespace>OSC</RootNamespace>
-    <AssemblyName>OSC</AssemblyName>
+    <RootNamespace>Fulyn</RootNamespace>
+    <AssemblyName>Fulyn</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -46,21 +46,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Alice.Extensions.cs" />
-    <Compile Include="Macro.cs" />
-    <Compile Include="Numbers.cs" />
-    <Compile Include="OSECPU.cs" />
-    <Compile Include="OSEGenerator.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="originsrc\osecpu.c" />
-    <None Include="originsrc\osecpu_ask.h" />
-    <None Include="originsrc\osecpu_asm.h" />
-    <None Include="originsrc\osectols.c" />
-    <None Include="originsrc\tek.c" />
-  </ItemGroup>
   <ItemGroup />
+  <ItemGroup>
+    <None Include="Samples\test.fln" />
+    <None Include="Samples\test.oseasm" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
