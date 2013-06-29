@@ -9,94 +9,14 @@ Fulynは完全な高級言語で、これを用いることで強力なコーディングを可能にします。
 
 # Grammer
 
-Fulynは、次の操作のみをサポートします。
+Fulynのプログラムは、関数宣言と変数（プロトタイプ）宣言のみで構成されます。
 
-## Statement and Expression
+
+## Function
 
 Fulynの関数は変数宣言と代入式で構成されます。
 
 全ての構文が戻り値を持ち、変数に代入されるか、捨てられます。
-
-Fulynは、現状でint型とfunc型をサポートします。
-
-func型は、funcとは書かずに、[ （引数の型1 -> 引数の型2 -> ... 引数の型n）=> 戻り値の型 ] と書きます。
-
-変数宣言は、名前の直後にコロンを置いて型名を書きます。
-
-関数の内部では、宣言は省略可能です。
-
-グローバル変数は宣言できますが、初期化はできず、関数内からしか値を代入できず、宣言が必須です。
-
-__命令の区切りは改行です。__複数行にわたって命令を繋げる場合は~を使います。
-
-syntax:
-
-    <program> ::= ( ( <prototype> | <declare> | <func> ) '\n' )+
-
-    <stmt> ::= ( <declare> | <subst> ) '\n'
-
-	<expr> ::= ( <literal> | <call> | <match> | <optr> )
-
-	<type> ::= 'int' | '[' <type> { '->' <type> } => <type> ']'
-
-    <declare> ::= <identity> : <type> 
-
-    <subst> ::= ( <identity> '=' |  [ ( '_' | '$' ) '=' ] ) <expr>
-
-### Literal Expression
-
-リテラルとして、数字とラムダ式があります。
-
-ラムダ式は後述します。
-
-syntax:
-
-    <literal> ::= <number> ::= ( '0' | '1' | ... '9' )+
-                  |
-	              <lambda>
-
-### Call Expression
-
-関数呼び出しです。
-
-func型の変数を指定出来ます。
-
-syntax:
-
-    <call> ::= <identity> '(' <arg1> [', <arg2>, <arg3>, ...])
-
-### Match Expression
-
-Fulynでは、if文もfor文もサポートせず、パターンマッチのみがあります。
-
-trueとfalseというimmutableな変数が用意されており、if文のように用いることもできます。
-
-()は必須で、マッチするものがなかった時に呼ばれます。
-
-falseは()と同値です。
-
-syntax:
-
-    <not-false> ::= '|' ( 'true' | <expr>) '->' <expr> 
-	<false> ::= '|' ( 'false' | '()' ) '->' <expr>
-
-    <match> ::= '?' <expr> '\n'
-	           { <not-false> '\n' }
-			     <false>
-			   { '\n' <not-false> }
-	              
-
-### Operator Expression
-
-Fulynでは、演算子は全てマクロで、最終的に関数呼び出しに変換されます。
-
-syntax: 
-
-    <optr> ::= <expr> <identity> <expr>
-
-もしかしたら演算子の宣言もサポートするかもしれません。
-
-## Function
 
 Fulynは、main関数から開始されます。
 
@@ -110,7 +30,11 @@ Fulynでは、ラムダ式を用いた単文関数と、関数宣言を用いた複文関数を定義できます。
 
 関数宣言には、プロトタイプ宣言が必要です。mainは不要です。
 
-プロトタイプ宣言は、見た目上は変数宣言と同一です。
+プロトタイプ宣言は、変数宣言と同一です。
+
+func型は、funcとは書かずに、[ （引数の型1 -> 引数の型2 -> ... 引数の型n =>) 戻り値の型 ] と書きます。
+
+もし引数がない場合でも、[]で囲って[int]のように書きます。
 
 syntax:
     
@@ -153,6 +77,87 @@ example:
         $
     end
 
+
+## Statement and Expression
+
+Fulynは、現状でint型とfunc型をサポートします。
+
+変数宣言は、名前の直後にコロンを置いて型名を書きます。
+
+関数の内部では、宣言は省略可能です。
+
+グローバル変数は宣言できますが、初期化はできず、関数内からしか値を代入できず、宣言が必須です。
+
+__命令の区切りは改行です。__複数行にわたって命令を繋げる場合は~を使います。
+
+syntax:
+
+    <program> ::= ( ( <declare> | <func> ) '\n' )+
+
+    <stmt> ::= ( <declare> | <subst> ) '\n'
+
+	<expr> ::= <literal> | <call> | <match> | <optr> | <var>
+
+	<type> ::= 'int' | '[' [ <type> { '->' <type> } => ] <type> ']'
+
+    <declare> ::= <identity> : <type> 
+
+    <subst> ::= ( <identity> '=' |  [ ( '_' | '$' ) '=' ] ) <expr>
+
+	<var> ::= <identity>
+
+### Literal Expression
+
+リテラルとして、数字とラムダ式があります。
+
+ラムダ式は後述します。
+
+syntax:
+
+    <number> ::= ( '0' | '1' | ... '9' )+
+	<literal> ::= <number> | <lambda>
+
+### Call Expression
+
+関数呼び出しです。
+
+func型の変数を指定出来ます。
+
+syntax:
+
+    <call> ::= <identity> '(' <expr> { ',' <expr> } ')'
+
+### Match Expression
+
+Fulynでは、if文もfor文もサポートせず、パターンマッチのみがあります。
+
+trueとfalseというimmutableな変数が用意されており、if文のように用いることもできます。
+
+()は必須で、マッチするものがなかった時に呼ばれます。
+
+falseは()と同値です。
+
+syntax:
+
+    <not-false> ::= '|' ( 'true' | <expr>) '->' <expr> 
+	<false> ::= '|' ( 'false' | '()' ) '->' <expr>
+    
+    <match> ::= '?' <expr> '\n'
+	           { <not-false> '\n' }
+			     <false>
+			   { '\n' <not-false> }
+	              
+
+### Operator Expression
+
+Fulynでは、演算子は全てマクロで、最終的に関数呼び出しに変換されます。
+
+syntax: 
+
+    <optr> ::= <expr> <identity> <expr>
+
+もしかしたら演算子の宣言もサポートするかもしれません。
+
 ### Lambda Expression
 
 ラムダ式は、関数のリテラルです。
@@ -173,7 +178,7 @@ syntax:
         x * x
     end
 
-### Technique
+## Technique
 
 Fulynにはループがないため、再帰関数を組む必要があります。
 

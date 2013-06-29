@@ -46,13 +46,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AST\Expr.cs" />
+    <Compile Include="AST\Program.cs" />
+    <Compile Include="AST\Stmt.cs" />
+    <Compile Include="AST\Type.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <None Include="Samples\test.fln" />
-    <None Include="Samples\test.oseasm" />
+    <None Include="readme.md" />
+    <None Include="Samples\gcd.fl" />
+    <None Include="Samples\sum.fl" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

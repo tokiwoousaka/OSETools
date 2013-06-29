@@ -28,7 +28,7 @@ namespace OSC
             // (r|p)egisters
             Labels = new Numbers<int>(0, 4096, x => x);
             LocalRegister = new Numbers<byte>(0, 32, x => (byte)x);
-            LocalPegister = new Numbers<byte>(0, 32, x => (byte)x);
+            LocalPegister = new Numbers<byte>(1, 31, x => (byte)x);
             GlobalRegister = new Numbers<byte>(32, 8, x => (byte)x);
             GlobalPegister = new Numbers<byte>(32, 8, x => (byte)x);
             FuncRegister = new Numbers<byte>(48, 12, x => (byte)x);
