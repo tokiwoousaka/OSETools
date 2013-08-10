@@ -26,7 +26,7 @@ namespace Fulyn.AST
     // <number> ::= ( '0' | '1' | ... '9' )+
     public class IntLiteral : ILiteral
     {
-        IntType Type { get { return new IntType(); } }
+        public IntType Type { get { return new IntType(); } }
         IType IExpr.Type { get { return Type; } }
         public int Value { get; set; }
     }
@@ -43,8 +43,7 @@ namespace Fulyn.AST
     // <call> ::= <identity> '(' <expr> { ',' <expr> } ')'
     public class Call : IExpr
     {
-        public FuncType Type { get; set; }
-        IType IExpr.Type { get { return Type; } }
+        public IType Type { get; set; }
         public string Identity { get; set; }
         public IExpr[] Args { get; set; }
     }
@@ -59,7 +58,8 @@ namespace Fulyn.AST
     public class Match : IExpr
     {
         public IType Type { get; set; }
-        public Tuple<IExpr, IExpr> Cases { get; set; }
+        public IExpr Expr { get; set; }
+        public Tuple<IExpr, IExpr>[] Cases { get; set; }
         public IExpr Otherwise { get; set; }
     }
 
@@ -70,5 +70,8 @@ namespace Fulyn.AST
         public string Identity { get; set; }
         public IExpr Left { get; set; }
         public IExpr Right { get; set; }
+
+        public static readonly Dictionary<string,string> Operators =
+            new Dictionary<string,string>() { {"*", "mul"}, {"/", "div"}, {"^", "pow"}, {"+", "add"}, {"-", "sub"}, {"==", "eq"} };
     }
 }

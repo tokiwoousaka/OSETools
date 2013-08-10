@@ -46,7 +46,13 @@ namespace OSC
         /// <para>{return_label} ... return label</para>
         /// <para>{func_label} ... function label</para>
         /// </summary>
-        public static readonly string FuncCall = "03 30 {return_label} 03 3F {func_label} 01 01 {return_label}";
+        public static readonly string Call = "03 30 {return_label} 03 3F {func_label} 01 01 {return_label}";
+
+        /// <summary>
+        /// <para>{return_label} ... return label</para>
+        /// <para>{0} ... function address</para>
+        /// </summary>
+        public static readonly string PCall = "03 30 {return_label} 1E 3F {0} 01 01 {return_label}";
 
         /// <summary>
         /// <para>{label} ... function label number</para>

@@ -1,4 +1,4 @@
-﻿gcd : [int -> int => int]
+﻿gcd :: [int -> int => int]
 
 main
     result = gcd(1547, 2093)

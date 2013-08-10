@@ -1,0 +1,33 @@
+﻿                           // main
+LIMM R30 1547              // set arg1
+LIMM R31 2093              // set arg2
+PLIMM P30 00               // set address
+PLIMM P3F 01               // call gcd
+LB 00                      // come back
+
+
+                           // gcd R30:x R31:y
+                           // header
+LB 01 01
+DEBUG-INFO-1
+SAVE
+
+LIMM R00 R30               // tmp = x
+
+CMPL R3F R30 R31           // if x < y
+CND R3F                    // then
+PLIMM P3F 02               // goto label 02
+
+                           // else
+LIMM R30 R30               // x = x
+PLIMM P3F 03               // goto label 03
+
+LB 02                      // label 02
+LIMM R30 R31               // x = y
+
+LB 03                      // label 03
+                           // end if
+
+                           // footer
+REST
+PCP P3F P30                // return

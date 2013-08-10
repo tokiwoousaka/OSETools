@@ -1,0 +1,18 @@
+junkapi :: include("junkapi.fl")
+draw :: [int -> int => int]
+c :: int
+
+main
+  c = 0
+  junkapi.openwin(256, 256)
+  for(0, i => i < 256, i => i + 1, ~
+    x => for(0, j => j < 256, j => j + 1, ~
+      y => draw(x, y) ~
+    ) ~
+  )
+end
+
+draw(x, y)
+  junkapi.drawpoint(0, x, y, c)
+  c = c + 0x100
+end

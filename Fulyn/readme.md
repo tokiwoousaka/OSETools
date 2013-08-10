@@ -11,6 +11,13 @@ Fulynは完全な高級言語で、これを用いることで強力なコーディングを可能にします。
 
 Fulynのプログラムは、関数宣言と変数（プロトタイプ）宣言のみで構成されます。
 
+syntax:
+
+    <program> ::= ( ( <declare> | <func> ) '\n' )+
+
+    <declare> ::= <identity> : <type> 
+
+
 
 ## Function
 
@@ -37,11 +44,17 @@ func型は、funcとは書かずに、[ （引数の型1 -> 引数の型2 -> ... 引数の型n =>) 戻り
 もし引数がない場合でも、[]で囲って[int]のように書きます。
 
 syntax:
+
+    <stmt> ::= ( <declare> | <subst> ) '\n'
+    
+    <subst> ::= ( <identity> '=' |  [ ( '_' | '$' ) '=' ] ) <expr>
     
     <func> ::= <identity> '(' <identity> { ',' <identity> } ')' '\n'
-			       <stmt>+
+                   <stmt>+
                'end'
                |
+
+
                <identity> = <lambda>
 
 ### Return
@@ -92,19 +105,9 @@ __命令の区切りは改行です。__複数行にわたって命令を繋げる場合は~を使います。
 
 syntax:
 
-    <program> ::= ( ( <declare> | <func> ) '\n' )+
-
-    <stmt> ::= ( <declare> | <subst> ) '\n'
-
 	<expr> ::= <literal> | <call> | <match> | <optr> | <var>
 
 	<type> ::= 'int' | '[' [ <type> { '->' <type> } => ] <type> ']'
-
-    <declare> ::= <identity> : <type> 
-
-    <subst> ::= ( <identity> '=' |  [ ( '_' | '$' ) '=' ] ) <expr>
-
-	<var> ::= <identity>
 
 ### Literal Expression
 
@@ -177,6 +180,15 @@ syntax:
     func2 (x)
         x * x
     end
+
+### Variable
+
+変数です。
+
+syntax:
+
+	<var> ::= <identity>
+
 
 ## Technique
 

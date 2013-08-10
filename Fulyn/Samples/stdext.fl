@@ -1,0 +1,8 @@
+for :: [int -> [int => int] -> [int => int] -> [int => int] => int]
+
+for(x, comp, next, exec)
+  ? comp(x)
+  | true -> exec(x)
+  | false -> $
+  1 + for(next(x), comp, next, exec)
+end

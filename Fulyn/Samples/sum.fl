@@ -1,8 +1,4 @@
-﻿sum : [int -> int => int]
-
 main
-    result = sum(1, 10000)
-    print(result)
+    sum = x -> y => (x + y) * (y - x + 1) / 2
+    sum(0, 10000)
 end
-
-sum = x => y => (x + y) * (y - x + 1) / 2

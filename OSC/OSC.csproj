@@ -46,7 +46,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Alice.Extensions.cs" />
+    <Compile Include="Libs\Alice.Extensions.cs" />
+    <Compile Include="Libs\Bind.cs" />
+    <Compile Include="Libs\Error.cs" />
+    <Compile Include="Libs\Unit.cs" />
     <Compile Include="Macro.cs" />
     <Compile Include="Numbers.cs" />
     <Compile Include="OSECPU.cs" />

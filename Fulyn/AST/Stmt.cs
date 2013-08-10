@@ -10,11 +10,16 @@ namespace Fulyn.AST
     {
     }
 
-    // <declare> ::= <identity> : <type> 
+    // <declare> ::= <identity> '::' <type> 
     public class Declare : IStmt, IMember
     {
         public string Identity { get; set; }
         public IType Type { get; set; }
+    }
+
+    public class Inline : IStmt
+    {
+        public string Text { get; set; }
     }
 
     // <subst> ::= ( <identity> '=' |  [ ( '_' | '$' ) '=' ] ) <expr>
