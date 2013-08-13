@@ -182,6 +182,20 @@ namespace Alice.Extensions
                 select y.Value;
         }
 
+        public static IEnumerable<string> Split(this string source, int count)
+        {
+            var buf = "";
+            foreach (var c in source)
+            {
+                buf += c;
+                if (buf.Length == count)
+                {
+                    yield return buf;
+                    buf = "";
+                }
+            }
+        }
+
         static IEnumerable<Match> ToEnumerable(this MatchCollection source)
         {
             foreach (var x in source)

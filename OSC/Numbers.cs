@@ -46,7 +46,7 @@ namespace OSC
 
         public void Free(IEnumerable<T> indexes)
         {
-            indexes.ForEach(x => data[x] = false);
+            indexes.ToArray().ForEach(x => data[x] = false);
         }
 
         public void Reset()

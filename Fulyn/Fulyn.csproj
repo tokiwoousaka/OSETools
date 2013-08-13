@@ -50,7 +50,9 @@
     <Compile Include="AST\Program.cs" />
     <Compile Include="AST\Stmt.cs" />
     <Compile Include="AST\Type.cs" />
-    <Compile Include="Parser\Parser.cs" />
+    <Compile Include="Processors\Parser.cs" />
+    <Compile Include="FulynException.cs" />
+    <Compile Include="Processors\Compiler.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -63,6 +65,7 @@
     <None Include="Samples\hello.fl" />
     <None Include="Samples\stdext.fl" />
     <None Include="Samples\sum.fl" />
+    <None Include="StdLib\stdlib.fl" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OSC\OSC.csproj">

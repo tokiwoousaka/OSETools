@@ -1,1 +1,90 @@
-﻿
+﻿add :: [int => int => int]
+sub :: [int => int => int]
+mul :: [int => int => int]
+div :: [int => int => int]
+pow :: [int => int => int]
+eql :: [int => int => int]
+neq :: [int => int => int]
+les :: [int => int => int]
+loq :: [int => int => int]
+gra :: [int => int => int]
+goq :: [int => int => int]
+and :: [int => int => int]
+or  :: [int => int => int]
+xor :: [int => int => int]
+sfl :: [int => int => int]
+sfr :: [int => int => int]
+for :: [int => [int => int] => [int => int] => [int => int] => int]
+
+add(x, y)
+  inline: 14 30 {x} {y}
+end 
+
+sub(x, y)
+  inline: 15 30 {x} {y}
+end
+
+mul(x, y)
+  inline: 16 30 {x} {y}
+end
+
+div(x, y)
+  inline: 16 30 {y} {x}
+end
+
+pow(x, y)
+  ? gra(y, 1)
+  | true -> mul(x, pow(x, sub(y, 1)))
+  | false -> x
+end
+
+eql(x, y)
+  inline: 20 30 {x} {y}
+end
+
+neq(x, y)
+  inline: 21 30 {x} {y}
+end
+
+les(x, y)
+  inline: 22 30 {x} {y}
+end
+
+loq(x, y)
+  inline: 24 30 {x} {y}
+end
+
+gra(x, y)
+  inline: 25 30 {x} {y}
+end
+
+goq(x, y)
+  inline: 23 30 {x} {y}
+end
+
+and(x, y)
+  inline: 12 30 {x} {y}
+end
+
+or(x, y)
+  inline: 10 30 {x} {y}
+end
+
+xor(x, y)
+  inline: 11 30 {x} {y}
+end
+
+sfl(x, y)
+  inline: 18 30 {x} {y}
+end
+
+sfr(x, y)
+  inline: 19 30 {x} {y}
+end
+
+for(x, comp, next, exec)
+  ? comp(x)
+  | true -> exec(x)
+  | false -> $
+  add(1, for(next(x), comp, next, exec))
+end

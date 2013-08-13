@@ -76,7 +76,7 @@ namespace OSC
         public void Emit(OSECode6 code, byte num, int value)
         {
             Emit((byte)code, num);
-            writer.Write(BitConverter.GetBytes(value).Reverse().Select(x => x).ToArray());
+            writer.Write(BitConverter.GetBytes(value).Reverse().ToArray());
         }
         
         public void EmitRem(byte remCode, params byte[] buf)

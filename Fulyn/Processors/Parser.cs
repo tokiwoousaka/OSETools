@@ -52,7 +52,7 @@ namespace Fulyn
                         }
                         else break;
                     }
-                    foreach (var t in ret.Split(';'))
+                    foreach (var t in ret.Split(new []{';'}, StringSplitOptions.RemoveEmptyEntries))
                         yield return t;
                 }
                 count++;
@@ -93,7 +93,7 @@ namespace Fulyn
                 {
                     buf.Add(s);
                     // endに到達したらパーサにかける
-                    if (s == "end")
+                    if (s.StartsWith("end"))
                     {
                         seek = false;
                         yield return ParseFunc(buf.ToArray());
@@ -128,7 +128,7 @@ namespace Fulyn
                 {
                     Identity = id,
                     Args = args,
-                    Stmts = lines.Skip(1).TakeWhile(x => x != "end").Select(ParseStmt).ToArray(),
+                    Stmts = lines.Skip(1).TakeWhile(x => !x.StartsWith("end")).Select(ParseStmt).ToArray(),
                     Type = type
                 };
             }
@@ -201,16 +201,15 @@ namespace Fulyn
             {
                 var name = text.TakeWhile(x => x != '(').JoinToString();
                 var body = text.SkipWhile(x => x != '(').JoinToString();
+                var args = body.Remove(body.Length - 1).Remove(0, 1).ParseIndent("(",",",")").Select(ParseExpr).ToArray();
                 var error = new Error<IType>(() => ((FuncType)(global.Any(x => x.Key == name) ? global : local).FirstOrDefault(x => x.Key == name).Value).ReturnType);
+                if (error.IsError)
+                    throw new FulynException(FulynErrorCode.Undefined, "関数 \"" + name + "\" は定義されていません。");
                 return new Call()
                 {
                     Identity = name,
-                    Args = body.Remove(body.Length - 1)
-                               .Remove(0, 1)
-                               .ParseIndent("(", ",", ")")
-                               .Select(ParseExpr)
-                               .ToArray(),
-                    Type = error.IsError ? null : error.Value
+                    Args = args,
+                    Type = error.Value
                 };
             }
 
@@ -218,7 +217,9 @@ namespace Fulyn
             else
             {
                 var error = new Error<IType>(() => (global.Any(x => x.Key == text) ? global : local).FirstOrDefault(x => x.Key == text).Value);
-                return new Variable() { Identity = text, Type = error.IsError ? null : error.Value };
+                if (error.IsError)
+                    throw new FulynException(FulynErrorCode.Undefined, "変数 \"" + text + "\" は定義されていません。");
+                return new Variable() { Identity = text, Type = error.Value };
             }
         }
 

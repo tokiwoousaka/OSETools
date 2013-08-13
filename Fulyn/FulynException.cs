@@ -17,12 +17,11 @@ namespace Fulyn
     public class FulynException : Exception
     {
         public FulynErrorCode ErrorCode { get; set; }
-        public string Message { get; set; }
 
         public FulynException(FulynErrorCode code, string message)
+            : base(message)
         {
             ErrorCode = code;
-            Message = message;
         }
     }
 }

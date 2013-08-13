@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using System;
+using System.IO;
 using Alice.Extensions;
 
 namespace Fulyn
@@ -10,33 +11,26 @@ namespace Fulyn
 	{
 		public static void Main(string[] args)
 		{
-            var code = @"
-gcd :: [int => int => int]
-   
-   main
-     a :: int; b :: int
-     result = gcd(1547, ~
-     2093)
-     print(result)
-   end
-   
-   gcd (x, y)
-     tmp = x
-     x = ? less(x, y) 
-         | true -> y 
-         | () -> x
-     y = ? equal(tmp, x) 
-         | true -> y 
-         | () -> tmp 
-     ? rem(x, y) 
-     | 0 -> x  
-     | () -> gcd(y, rem(x, y))
-   end".Replace(" ","").Split(new []{@"
-"}, StringSplitOptions.None);
+            var code = args.Select(x => from a in File.OpenRead(x).ToUsing()
+                                        from b in new StreamReader(a).ToUsing()
+                                        select b.ReadToEnd())
+                           .JoinToString()
+                           .Replace(" ", "")
+                           .Replace("\r", "")
+                           .Split('\n');
+                       
 
-            var cmp = new FulynCompiler();
+            var cmp = new FulynCompiler("stdlib.ose");
             cmp.Parse(code);
+            cmp.Compile();
 
+            var read = from x in File.OpenRead("stdlib.ose").ToUsing()
+                       from y in new BinaryReader(x).ToUsing()
+                       select y.ReadBytes((int)x.Length);
+
+            foreach (var b in read)
+                Console.Write(b.ToString("X2") + " ");
+            
             Console.Read();
 		}
 	}
