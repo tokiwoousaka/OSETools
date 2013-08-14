@@ -1,21 +1,22 @@
-﻿gcd :: [int -> int => int]
+gcd :: [int => int => int]
+a :: int
 
 main
-    result = gcd(1547, 2093)
-    print(result)
+  a = gcd(1547, 2093)
 end
 
-gcd (x, y)
-    // x > yになるように入れ替える
-    tmp = x
-    x = ? x < y
-        | true -> y
-        | false -> x
-    y = ? tmp == x
-        | true -> y
-        | false -> tmp 
-    // 非0なら再帰
-    ? x % y
-    | 0 -> x
-    | () -> gcd(y, x % y)
+gcd(x, y)
+  tmp = x
+  xg = x
+  yg = y
+  xg = ? les(xg, yg)
+       | true -> yg
+	   | false -> xg
+  yg = ? eql(xg, tmp)
+       | true -> yg
+	   | false -> tmp
+  ? mod(xg, yg)
+  | 0 -> yg
+  | () -> gcd(yg, mod(xg, yg))
 end
+

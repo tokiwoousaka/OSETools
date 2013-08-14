@@ -11,27 +11,34 @@ namespace Fulyn
 	{
 		public static void Main(string[] args)
 		{
-            var code = args.Select(x => from a in File.OpenRead(x).ToUsing()
+            var list = new List<string>(args);
+            var output = "a.out";
+            list.ToArray().ForEach(x =>
+                {
+                    if (x.Contains("output") && x.Contains("="))
+                    {
+                        output = x.Replace("output", "").Replace(" ", "").Replace("=", "");
+                        list.Remove(x);
+                    }
+                });
+
+            var code = list.Concat(new []{"stdlib.fl"})
+                           .Reverse()
+                           .Select(x => from a in File.OpenRead(x).ToUsing()
                                         from b in new StreamReader(a).ToUsing()
                                         select b.ReadToEnd())
-                           .JoinToString()
+                           .JoinToString("\n")
                            .Replace(" ", "")
                            .Replace("\r", "")
+                           .Replace("\t", "")
                            .Split('\n');
-                       
 
-            var cmp = new FulynCompiler("stdlib.ose");
+            File.Delete(output);
+
+            Console.WriteLine("compile log:");
+            var cmp = new FulynCompiler(output);
             cmp.Parse(code);
             cmp.Compile();
-
-            var read = from x in File.OpenRead("stdlib.ose").ToUsing()
-                       from y in new BinaryReader(x).ToUsing()
-                       select y.ReadBytes((int)x.Length);
-
-            foreach (var b in read)
-                Console.Write(b.ToString("X2") + " ");
-            
-            Console.Read();
 		}
 	}
 }

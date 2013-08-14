@@ -18,6 +18,8 @@ namespace Fulyn
         Stream ms;
         OSEGenerator ose;
         int funcend;
+        bool returnsPointer = false;
+
 
         public FulynCompiler(string outputFile)
         {
@@ -35,7 +37,7 @@ namespace Fulyn
             lines = lines.Where(x => !x.StartsWith("//"))
                          .Select(x => x.IndexOf("//") > 0 ? x.Remove(x.IndexOf("//")) : x)
                          .ToArray();
-            AST = new FulynProg() { Members = ParseBase(PreProcess(lines)).ToArray() };
+            AST = new FulynProg() { Members = ParseBase(PreProcess(lines)).OrderByDescending(x => x.GetType() == typeof(Declare)).ToArray() };
         }
 
         /// <summary>
@@ -101,9 +103,27 @@ namespace Fulyn
 
 
             // ラムダリテラル
-            // ラムダは扱いがめんどくさそうなので、関数パーサ構築まで放置
             else if (e.GetType() == typeof(LambdaLiteral))
-                throw new NotImplementedException();
+            {
+                var lambda = (LambdaLiteral)e;
+                var lambdalab = ose.Labels.Lock();
+                var lambdaend = ose.Labels.Lock();
+                var args = lambda.Args.Zip(lambda.Type.ArgsType, Tuple.Create).ToArray();
+                var locals = args.Select(x => (x.Item2.GetType() == typeof(IntType) ? ose.LocalRegister : ose.LocalPegister).Lock()).ToArray();
+                ose.Emit(OSECode6.PLoadImm, result, lambdalab);
+                ose.EmitMacro(Macro.Goto, new MacroValues(to => lambdaend));
+                ose.Emit(OSECode6.Label, 0x01, lambdalab);
+                ose.FuncRegister.Local(); ose.FuncPegister.Local();
+                foreach (var arg in args.Zip(locals, Tuple.Create))
+                {
+                    ose.Emit(arg.Item1.Item2.GetType() == typeof(IntType) ? OSECode3.Copy : OSECode3.PCopy, arg.Item2, (arg.Item1.Item2.GetType() == typeof(IntType) ? ose.FuncRegister : ose.FuncPegister).Lock());
+                    (arg.Item1.Item2.GetType() == typeof(IntType) ? lval : lfunc).Add(arg.Item1.Item1, arg.Item2);
+                }
+                CompileExpr(lambda.Expr, returnto: (byte)(lambda.Expr.Type.GetType() == typeof(IntType) ? 0x30 : 0x31));
+                ose.EmitMacro(Macro.PGoto, new MacroValues(), 0x30);
+                ose.Emit(OSECode6.Label, 0x01, lambdaend);
+                ose.FuncRegister.Unlocal(); ose.FuncPegister.Unlocal();
+            }
 
 
             // 呼び出し
@@ -114,23 +134,45 @@ namespace Fulyn
                 // Pxxの場合、CallマクロではなくPCallマクロ
                 var isPointer = lfunc.Any(x => x.Key == call.Identity);
 
+                ose.FuncRegister.Local(); ose.FuncPegister.Local();
+
+                // 引数の式を再帰評価し、引数レジスタに代入
+                // まだEmitしていないので深度が深いほど先にEmitされる
+                var argsreg = call.Args.Select(x => (x.Type.GetType() == typeof(IntType) ? ose.LocalRegister : ose.LocalPegister).Lock()).Zip(call.Args, Tuple.Create).ToArray();
+                foreach (var reg in argsreg)
+                {
+                    CompileExpr(reg.Item2, isLocal, reg.Item1);
+                }
+
                 // 引数をR30 ~ R3B, P30 ~ P3Bに代入
-                foreach (var reg in call.Args)
-                    // 引数の式を再帰評価し、引数レジスタに代入
-                    // まだEmitしていないので深度が深いほど先にEmitされる
-                    CompileExpr(reg, isLocal, (reg.Type.GetType() == typeof(IntType) ? ose.FuncRegister : ose.FuncPegister).Lock());
-                
+                foreach (var reg in argsreg)
+                {
+                    if (reg.Item2.Type.GetType() == typeof(IntType))
+                        ose.Emit(OSECode3.Copy, ose.FuncRegister.Lock(), reg.Item1);
+                    else
+                        ose.Emit(OSECode3.PCopy, ose.FuncPegister.Lock(), reg.Item1);
+                }
+
                 // 呼び出しをEmit
                 if (isPointer)
+                {
+                    ose.Emit(OSECode3.PCopy, 0x3B, 0x30);
                     ose.EmitMacro(Macro.PCall, new MacroValues(return_label => ose.Labels.Lock()), lfunc.First(x => x.Key == call.Identity).Value);
+                    ose.Emit(OSECode3.PCopy, 0x30, 0x3B);
+                }
                 else
+                {
+                    ose.Emit(OSECode3.PCopy, 0x3B, 0x30);
                     ose.EmitMacro(Macro.Call, new MacroValues(return_label => ose.Labels.Lock(), func_label => gfunc.First(x => x.Key == call.Identity).Value));
+                    ose.Emit(OSECode3.PCopy, 0x30, 0x3B);
+                }
+
+                // 引数レジスタはもう使用しないので、全解放
+                argsreg.ForEach(x => (x.Item2.Type.GetType() == typeof(IntType) ? ose.LocalRegister : ose.LocalPegister).Free(x.Item1));
+                ose.FuncRegister.Unlocal(); ose.FuncPegister.Unlocal();
 
                 // 結果をreturnレジスタにコピー、戻り値はR30 or P31に入ってくる
                 ose.Emit(call.Type.GetType() == typeof(IntType) ? OSECode3.Copy : OSECode3.PCopy, result, call.Type.GetType() == typeof(IntType) ? (byte)0x30 : (byte)0x31);
-
-                // 引数レジスタはもう使用しないので、全解放
-                ose.FuncRegister.Reset(); ose.FuncPegister.Reset();
             }
 
 
@@ -145,7 +187,7 @@ namespace Fulyn
 
                 // マッチ対象を再帰評価
                 var expr = CompileExpr(match.Expr, isLocal);
-               　
+
                 // true-falseの時
                 if (isIf)
                 {
@@ -183,7 +225,7 @@ namespace Fulyn
                     // otherwiseラベル
                     var otherwise = ose.Labels.Lock();
                     // 各ケース用ラベル
-                    var cases = Enumerable.Range(0, match.Cases.Length).Select(x => ose.Labels.Lock());
+                    var cases = Enumerable.Range(0, match.Cases.Length).Select(x => ose.Labels.Lock()).ToArray();
                     // マッチ用テンポラリレジスタ1: 結果用
                     var temp = matchreg.Lock();
                     // マッチ用テンポラリレジスタ2: 比較用
@@ -240,10 +282,10 @@ namespace Fulyn
             else if (e.GetType() == typeof(Variable))
             {
                 var val = (Variable)e;
+                resrpdic = e.Type.GetType() == typeof(IntType) ? (lval.Keys.Contains(val.Identity) ? lval : gval) : lfunc;
                 var reg = resrpdic.First(x => x.Key == val.Identity).Value;
-                // returnレジスタを破棄し、代わりに変数のレジスタを返す
-                resrpers.Free(result);
-                result = reg;
+                // returnレジスタにコピー
+                ose.Emit(e.Type.GetType() == typeof(IntType) ? OSECode3.Copy : OSECode3.PCopy, result, reg);
             }
 
             return result;
@@ -260,9 +302,9 @@ namespace Fulyn
             if (e.GetType() == typeof(Inline))
             {
                 var inline = (Inline)e;
-                gval.Concat(lval).Concat(lfunc).ToArray().ForEach(x => inline.Text = inline.Text.Replace("{" + x.Key + "}", x.Value.ToString()));
-                gfunc.ToArray().ForEach(x => inline.Text = inline.Text.Replace("{" + x.Key + "}", BitConverter.GetBytes(x.Value).Reverse().JoinToString()));
-                var parse = inline.Text.Where(char.IsNumber).JoinToString().Split(2);
+                gval.Concat(lval).Concat(lfunc).ToArray().ForEach(x => inline.Text = inline.Text.Replace("{" + x.Key + "}", x.Value.ToString("X2")));
+                gfunc.ToArray().ForEach(x => inline.Text = inline.Text.Replace("{" + x.Key + "}", BitConverter.GetBytes(x.Value).Reverse().JoinToString("X2")));
+                var parse = inline.Text.Where(char.IsLetterOrDigit).JoinToString().Split(2);
                 ose.Emit(parse.Select(x => byte.Parse(x, System.Globalization.NumberStyles.HexNumber)).ToArray());
             }
 
@@ -270,27 +312,32 @@ namespace Fulyn
             else if (e.GetType() == typeof(Declare))
             {
                 var dec = (Declare)e;
-                (dec.Type.GetType() == typeof(IntType) ? lval : lfunc).Add(dec.Identity, (dec.Type.GetType() == typeof(IntType) ? ose.LocalRegister : ose.LocalPegister).Lock());
+                var register = (dec.Type.GetType() == typeof(IntType) ? ose.LocalRegister : ose.LocalPegister).Lock();
+                (dec.Type.GetType() == typeof(IntType) ? lval : lfunc).Add(dec.Identity, register);
+                Console.WriteLine("local register " + dec.Identity + ":" + register.ToString("X2"));
             }
 
             // 代入
             else if (e.GetType() == typeof(Subst))
             {
                 var sub = (Subst)e;
-                var regs = sub.Expr.Type.GetType() == typeof(IntType) ? lval : lfunc;
+                var regs = sub.Expr.Type.GetType() == typeof(IntType) ? (lval.Keys.Contains(sub.Identity) ? lval : gval) : lfunc;
                 
                 // 存在しなかった場合はロック
-                if(!regs.Any(x => x.Key == sub.Identity))
-                    regs.Add(sub.Identity, (sub.Expr.Type.GetType() == typeof(IntType) ? ose.LocalRegister : ose.LocalPegister).Lock());
-                ose.Emit(sub.Expr.Type.GetType() == typeof(IntType) ? OSECode3.Copy : OSECode3.PCopy, regs[sub.Identity], CompileExpr(sub.Expr));
+                if (!regs.Any(x => x.Key == sub.Identity))
+                {
+                    var isint = sub.Expr.Type.GetType() == typeof(IntType);
+                    var register = (isint ? ose.LocalRegister : ose.LocalPegister).Lock();
+                    regs.Add(sub.Identity, register);
+                    Console.WriteLine("local register " + sub.Identity + ":" + register.ToString("X2"));
+                }
+                CompileExpr(sub.Expr, returnto: regs[sub.Identity]);
 
                 // $だったらgoto funcend
                 if (sub.Identity == "$")
                     ose.EmitMacro(Macro.Goto, new MacroValues(to => funcend));
             }
         }
-
-        bool returnsPointer = false;
 
         /// <summary>
         /// 関数をEmitします
@@ -301,6 +348,8 @@ namespace Fulyn
             // 関数のラベル
             var labelnum = gfunc.First(x => x.Key == f.Identity).Value;
             funcend = ose.Labels.Lock();
+
+            Console.WriteLine("\nfunction: " + f.Identity);
             
             // 関数の始まり
             ose.EmitMacro(Macro.FuncStart, new MacroValues(label => labelnum));
@@ -335,6 +384,7 @@ namespace Fulyn
             // 関数の終わり
             ose.Emit(OSECode6.Label, 0x01, funcend);
             ose.EmitMacro(Macro.FuncEnd);
+            Console.WriteLine("end: " + f.Identity);
         }
 
         /// <summary>
@@ -343,6 +393,14 @@ namespace Fulyn
         /// <param name="ms">Members</param>
         void CompileProg(IMember[] ms)
         {
+
+            // main
+            var lab = ose.Labels.Lock();
+            var progend = ose.Labels.Lock();
+            gfunc.Add("main", lab);
+            Console.WriteLine("global entrypoint main: " + lab);
+            ose.EmitMacro(Macro.Call, new MacroValues(return_label => progend, func_label => lab));
+
             foreach (var m in ms)
             {
                 // 関数
@@ -354,9 +412,17 @@ namespace Fulyn
                 {
                     var dec = (Declare)m;
                     if (dec.Type.GetType() == typeof(IntType))
-                        gval.Add(dec.Identity, ose.GlobalRegister.Lock());
+                    {
+                        var reg = ose.GlobalRegister.Lock();
+                        gval.Add(dec.Identity, reg);
+                        Console.WriteLine("global variable \"" + dec.Identity + "\": " + reg.ToString("X2"));
+                    }
                     else
-                        gfunc.Add(dec.Identity, ose.Labels.Lock());
+                    {
+                        var label = ose.Labels.Lock();
+                        gfunc.Add(dec.Identity, label);
+                        Console.WriteLine("global func \"" + dec.Identity + "\": " + label);
+                    }
                 }
             }
         }

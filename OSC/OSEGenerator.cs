@@ -29,10 +29,10 @@ namespace OSC
             Labels = new Numbers<int>(0, 4096, x => x);
             LocalRegister = new Numbers<byte>(0, 32, x => (byte)x);
             LocalPegister = new Numbers<byte>(1, 31, x => (byte)x);
-            GlobalRegister = new Numbers<byte>(32, 8, x => (byte)x);
-            GlobalPegister = new Numbers<byte>(32, 8, x => (byte)x);
-            FuncRegister = new Numbers<byte>(48, 12, x => (byte)x);
-            FuncPegister = new Numbers<byte>(49, 12, x => (byte)x);
+            GlobalRegister = new Numbers<byte>(0x20, 8, x => (byte)x);
+            GlobalPegister = new Numbers<byte>(0x20, 8, x => (byte)x);
+            FuncRegister = new Numbers<byte>(0x31, 11, x => (byte)x);
+            FuncPegister = new Numbers<byte>(0x31, 11, x => (byte)x);
 
             // write signsture (OSE1, NOP)
             Emit(0x05, 0xE1, 0x00);
@@ -46,6 +46,7 @@ namespace OSC
         
         public void Emit(params byte[] buf)
         {
+            Console.WriteLine("emit: " + buf.Select(x => x.ToString("X2")).JoinToString(" "));
         	writer.Write(buf);
         }
         
@@ -75,14 +76,12 @@ namespace OSC
         
         public void Emit(OSECode6 code, byte num, int value)
         {
-            Emit((byte)code, num);
-            writer.Write(BitConverter.GetBytes(value).Reverse().ToArray());
+            Emit(new[] { (byte)code, num }.Concat(BitConverter.GetBytes(value).Reverse()).ToArray());
         }
         
         public void EmitRem(byte remCode, params byte[] buf)
         {
-            Emit(0xFE, remCode);
-            writer.Write(buf.Take(remCode).ToArray());
+            Emit(new[] { (byte)0xFE, remCode }.Concat(buf.Take(remCode)).ToArray());
         }
 
         public void EmitMacro(string macro, MacroValues values = null, params byte[] buf)

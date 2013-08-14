@@ -34,7 +34,7 @@ namespace OSC
 
         public T Lock()
         {
-            var i = data.First(x => !x.Value).Key;
+            var i = data.First(x => x.Value == false).Key;
             data[i] = true;
             return i;
         }
@@ -64,7 +64,6 @@ namespace OSC
         {
             var x = local.Pop();
             this.data = x.data;
-            this.local = x.local;
         }
 
         public IEnumerator<T> GetEnumerator()

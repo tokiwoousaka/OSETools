@@ -60,6 +60,11 @@ namespace Fulyn
         }
 
         /// <summary>
+        /// 関数をとっておきます
+        /// </summary>
+        List<string[]> funcs = new List<string[]>();
+
+        /// <summary>
         /// Memberを列挙
         /// </summary>
         IEnumerable<IMember> ParseBase(IEnumerable<string> lines)
@@ -81,7 +86,7 @@ namespace Fulyn
 
                     // lambda
                     else if (s.Contains("=>"))
-                        yield return ParseFunc(new[] { s });
+                        funcs.Add(new[] { s });
 
                     // 複文関数の場合、舐める
                     else if (s.Contains("(") || s == "main")
@@ -96,12 +101,14 @@ namespace Fulyn
                     if (s.StartsWith("end"))
                     {
                         seek = false;
-                        yield return ParseFunc(buf.ToArray());
+                        funcs.Add(buf.ToArray());
                         buf.Clear();
                     }
                 }
 
             }
+            foreach (var f in funcs)
+                yield return ParseFunc(f);
         }
 
         /// <summary>
@@ -157,15 +164,29 @@ namespace Fulyn
         /// </summary>
         IExpr ParseExpr(string text)
         {
+            var _ = 0;
             // 整数リテラル
-            if (text.All(char.IsDigit))
-                return new IntLiteral() { Value = int.Parse(text) };
+            if (text.StartsWith("0x") || text.All(char.IsDigit))
+                return new IntLiteral() { Value = int.Parse(text.Replace("0x", ""), text.Contains("0x") ? System.Globalization.NumberStyles.HexNumber : System.Globalization.NumberStyles.Any) };
 
             // lambda
             else if (text.Contains("=>"))
             {
-                var x = text.ParseIndent("(", "=>", ")");
-                return new LambdaLiteral() { Args = x.Take(x.Count() - 1).ToArray(), Expr = ParseExpr(x.Last()) };
+                var x = text.ParseIndent("(", "=>", ")").Select(y => y.Split(new []{"::"}, StringSplitOptions.RemoveEmptyEntries));
+                var type = (FuncType)ParseType("[" + x.Take(x.Count() - 1).Select(y => y[1] + " => ").JoinToString() + "int]");
+                var args = x.Take(x.Count() - 1).Select(y => y[0]).ToArray();
+                foreach (var t in type.ArgsType.Zip(args, Tuple.Create))
+                    local.Add(t.Item2, t.Item1);
+                var expr = ParseExpr(x.Last().First());
+                type.ReturnType = expr.Type;
+                foreach (var t in args)
+                    local.Remove(t);
+                return new LambdaLiteral() 
+                { 
+                    Args = args, 
+                    Expr = expr,
+                    Type = type
+                };
             }
 
             // パターンマッチ
@@ -180,12 +201,13 @@ namespace Fulyn
                 return new Match()
                 {
                     Expr = ParseExpr(x[0].Replace("?", "")),
-                    Cases = x.Skip(1).Where(y => !y.Contains("()"))
-                                     .Select(y => y.Split(new[] { "->" }, StringSplitOptions.None))
+                    Cases = x.Skip(1).Select(y => y.Split(new[] { "->" }, StringSplitOptions.None))
+                                     .Where(y => !y[0].Contains("()"))
                                      .Select(y => Tuple.Create(ParseExpr(y[0]), ParseExpr(y[1]))).ToArray(),
-                    Otherwise = x.Where(y => y.Contains("()")).Select(y => y.Split(new[] { "->" }, StringSplitOptions.None))
+                    Otherwise = x.Select(y => y.Split(new[] { "->" }, StringSplitOptions.None))
+                                 .Where(y => y[0].Contains("()"))
                                  .Select(y => ParseExpr(y[1])).FirstOrDefault(),
-                    Type = x.Skip(1).Select(y => y.Split(new[] { "->" }, StringSplitOptions.None)).Select(y => ParseExpr(y[1])).First().Type
+                    Type = x.Skip(1).Select(y => y.Split(new[] { "->" }, StringSplitOptions.None)).Select(y => ParseExpr(y[1])).First(y => y.Type != null).Type
                 };
             }
 
@@ -246,21 +268,21 @@ namespace Fulyn
             if (text.StartsWith("inline:"))
                 return new Inline() { Text = text.Replace("inline:", "") };
 
+            // 代入
+            else if (text.Contains("="))
+            {
+                var x = text.Split('=');
+                var name = x[0]; var expr = ParseExpr(x.Skip(1).JoinToString("="));
+                if (!global.Any(y => y.Key == name) && !local.Any(y => y.Key == name))
+                    local.Add(name, expr.Type);
+                return new Subst() { Identity = name, Expr = expr };
+            }
+
             // 宣言
             else if (text.Contains("::"))
             {
                 var x = text.Split(new[] { "::" }, StringSplitOptions.None);
                 return new Declare() { Identity = x[0], Type = ParseType(x[1]) };
-            }
-
-            // 代入
-            else if (text.Contains("="))
-            {
-                var x = text.Split('=');
-                var name = x[0]; var expr = ParseExpr(x[1]);
-                if (!global.Any(y => y.Key == name) && !local.Any(y => y.Key == name))
-                    local.Add(name, expr.Type);
-                return new Subst() { Identity = name, Expr = expr };
             }
 
             // 暗黙代入

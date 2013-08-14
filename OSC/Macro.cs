@@ -63,5 +63,10 @@ namespace OSC
         /// none
         /// </summary>
         public static readonly string FuncEnd = "3D 00 20 20 00 00 00 1E 3F 30";
+
+        /// <summary>
+        /// none
+        /// </summary>
+        public static readonly string Fault = "1E 3F 00";
     }
 }

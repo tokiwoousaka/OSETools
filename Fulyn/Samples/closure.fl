@@ -1,0 +1,8 @@
+a :: int
+
+main
+  b = 6
+  func = x :: int => y :: int => mul(b, add(x,y))
+  a = func(3, 4)
+end
+

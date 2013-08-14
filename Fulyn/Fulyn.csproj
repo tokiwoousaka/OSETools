@@ -65,13 +65,20 @@
     <None Include="Samples\hello.fl" />
     <None Include="Samples\stdext.fl" />
     <None Include="Samples\sum.fl" />
-    <None Include="StdLib\stdlib.fl" />
+    <None Include="stdlib.fl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\OSC\OSC.csproj">
       <Project>{ef09b928-82f4-493a-8f23-44fa296a007e}</Project>
       <Name>OSC</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="stddraw.fl">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

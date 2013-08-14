@@ -1,18 +1,25 @@
-junkapi :: include("junkapi.fl")
-draw :: [int -> int => int]
-c :: int
+draw :: [int]
+winx :: int
+winy :: int
+col :: int
 
 main
-  c = 0
-  junkapi.openwin(256, 256)
-  for(0, i => i < 256, i => i + 1, ~
-    x => for(0, j => j < 256, j => j + 1, ~
-      y => draw(x, y) ~
-    ) ~
-  )
+  col = 0xFF0000
+  openwin(256, 256)
+  draw()
 end
 
-draw(x, y)
-  junkapi.drawpoint(0, x, y, c)
-  c = c + 0x100
+draw()
+  drawpoint(winx, winy, col)
+  winx = ? eql(255, winx)
+         | true -> 0
+		 | false -> add(winx, 1)
+  winy = ? eql(0, winx)
+         | true -> add(winy, 1)
+		 | false -> winy 
+  col = add(col, 1)
+  ? eql(winy, 255)
+  | true -> 3
+  | false -> draw()
 end
+

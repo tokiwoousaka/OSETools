@@ -2,6 +2,7 @@
 sub :: [int => int => int]
 mul :: [int => int => int]
 div :: [int => int => int]
+mod :: [int => int => int]
 pow :: [int => int => int]
 eql :: [int => int => int]
 neq :: [int => int => int]
@@ -15,6 +16,7 @@ xor :: [int => int => int]
 sfl :: [int => int => int]
 sfr :: [int => int => int]
 for :: [int => [int => int] => [int => int] => [int => int] => int]
+openwin :: [int => int => int]
 
 add(x, y)
   inline: 14 30 {x} {y}
@@ -29,13 +31,19 @@ mul(x, y)
 end
 
 div(x, y)
-  inline: 16 30 {y} {x}
+  inline: 1A 30 {x} {y}
+end
+
+mod(x, y)
+  inline: 1B 30 {x} {y}
 end
 
 pow(x, y)
-  ? gra(y, 1)
-  | true -> mul(x, pow(x, sub(y, 1)))
-  | false -> x
+  xp = x
+  yp = y
+  ? gra(yp, 1)
+  | true -> mul(xp, pow(xp, sub(yp, 1)))
+  | false -> xp
 end
 
 eql(x, y)
@@ -87,4 +95,17 @@ for(x, comp, next, exec)
   | true -> exec(x)
   | false -> $
   add(1, for(next(x), comp, next, exec))
+end
+
+// API FB
+openwin(sizex, sizey)
+  sx = sizex
+  sy = sizey
+  inline: FE 05 01 00 00 00 10
+  inline: 02 30 00 00 FF 40
+  inline: 10 31 {sx} FF
+  inline: 10 32 {sy} FF
+  inline: 03 30 00 00 0F FB 1E 3F 28 01 01 00 00 0F FB
+  inline: FE 01 00
+  0
 end
