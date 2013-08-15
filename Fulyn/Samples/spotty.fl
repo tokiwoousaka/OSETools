@@ -1,0 +1,17 @@
+indx :: int; indy :: int; color :: int
+main
+  ? eql(0, color) 
+  | true -> openwin(256, 256) 
+  | false -> 0
+  color = add(add(mul(indx, 21760), mul(indy, 85)), 0xFF0000)
+  filloval(add(2, mul(64, indx)), add(2, mul(64, indy)), 60, 60, color)
+  indx = ? les(indx, 3) 
+         | true -> add(indx, 1) 
+         | false -> 0
+  indy = ? eql(indx, 0) 
+         | true -> add(indy, 1) 
+         | false -> indy
+  ? les(indy, 4)
+  | true -> main() 
+  | false -> 0
+end

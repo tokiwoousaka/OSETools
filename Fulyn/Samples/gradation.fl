@@ -1,4 +1,5 @@
 draw :: [int]
+draw2 :: [int]
 winx :: int
 winy :: int
 col :: int
@@ -10,16 +11,19 @@ main
 end
 
 draw()
-  drawpoint(winx, winy, col)
-  winx = ? eql(255, winx)
-         | true -> 0
-		 | false -> add(winx, 1)
-  winy = ? eql(0, winx)
-         | true -> add(winy, 1)
-		 | false -> winy 
-  col = add(col, 1)
-  ? eql(winy, 255)
-  | true -> 3
+  draw2()
+  winy = 0
+  winx = add(winx, 1)
+  ? gra(winx, 255)
+  | true -> 0
   | false -> draw()
 end
 
+draw2()
+  drawpoint(winx, winy, col)
+  winy = add(winy, 1)
+  col = add(col, 1)
+  ? gra(winy, 255)
+  | true -> 0
+  | false -> draw2()
+end

@@ -1,0 +1,16 @@
+fibonatti :: [int => int => int]
+
+main
+  fibonatti(0, 1)
+end
+
+fibonatti(left, right)
+  r = right
+  next = add(left, right)
+  putnum(next, 0x0a)
+  ? les(next, 1000)
+  | true -> fibonatti(r, next)
+  | false -> 0
+end
+
+

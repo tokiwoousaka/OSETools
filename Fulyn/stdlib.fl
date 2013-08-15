@@ -16,7 +16,14 @@ xor :: [int => int => int]
 sfl :: [int => int => int]
 sfr :: [int => int => int]
 for :: [int => [int => int] => [int => int] => [int => int] => int]
+for2 :: [int => [int => int] => [int => int] => [int => int] => int]
 openwin :: [int => int => int]
+putnum :: [int => int => int]
+putchar :: [int => int]
+exit :: [int => int]
+sleep :: [int => int]
+read :: [int]
+rand :: [int => int]
 
 add(x, y)
   inline: 14 30 {x} {y}
@@ -91,10 +98,23 @@ sfr(x, y)
 end
 
 for(x, comp, next, exec)
-  ? comp(x)
-  | true -> exec(x)
-  | false -> $
-  add(1, for(next(x), comp, next, exec))
+  xf = x
+  cmpf = comp
+  nxtf = next
+  excf = exec
+  flag = comp(xf)
+  ? comp(xf)
+  | true -> for2(xf, cmpf, nxtf, excf)
+  | false -> 0
+end
+
+for2(x, comp, next, exec)
+  xf = x
+  cmpf = comp
+  nxtf = next
+  excf = exec
+  excf(xf)
+  for(nxtf(xf), cmpf, nxtf, excf)
 end
 
 // API FB
@@ -108,4 +128,95 @@ openwin(sizex, sizey)
   inline: 03 30 00 00 0F FB 1E 3F 28 01 01 00 00 0F FB
   inline: FE 01 00
   0
+end
+
+// API FA
+putnum(num, sep)
+  inline: 10 36 {num} FF
+  inline: 10 37 {sep} FF
+  inline: FE 05 01 00 00 00 16
+  inline: 02 30 00 00 ff 09
+  inline: 02 33 00 00 00 01 
+  inline: 02 31 00 00 00 02 
+  inline: 02 3B 00 00 00 03
+  inline: 30 31 3B 31
+  inline: 1E 3A 31
+  inline: 09 33 00 00 00 03 3A 00
+  inline: 0E 3A 00 00 00 03 3A 33 
+  inline: 09 37 00 00 00 03 3A 00
+  inline: 02 32 00 00 00 04   
+  inline: 02 3b 00 00 00 06  
+  inline: 30 32 3B 32
+  inline: 1E 3A 32
+  inline: 02 3B FF FF FF FF
+  inline: 09 3B 00 00 00 06 3A 00
+  inline: 0E 3A 00 00 00 06 3A 33
+  inline: 02 3B 00 00 00 0A
+  inline: 09 3B 00 00 00 06 3A 00
+  inline: 0E 3A 00 00 00 06 3A 33
+  inline: 09 33 00 00 00 06 3A 00
+  inline: 0E 3A 00 00 00 06 3A 33
+  inline: 09 36 00 00 00 06 3A 00
+  inline: 03 30 00 00 0F FA
+  inline: 1E 3F 28
+  inline: 01 01 00 00 0F FA
+  inline: FE 01 00
+  inline: 31 3F 3F 3F
+  inline: 31 3F 3F 3F
+end
+
+// API F9
+putchar(char)
+  inline: 10 36 {char} FF
+  inline: FE 05 01 00 00 00 01
+  inline: 02 30 00 00 FF 07
+  inline: 02 31 00 00 00 01
+  inline: 02 3B 00 00 00 03
+  inline: 30 31 3B 31
+  inline: 09 36 00 00 00 03 31 00 
+  inline: 03 30 00 00 0F F9
+  inline: 1E 3F 28
+  inline: 01 01 00 00 0F F9
+  inline: FE 01 00
+  inline: 31 3F 3F 3F
+end
+
+// API F8
+exit(code)
+  c = code
+  inline: FE 05 01 00 00 00 08
+  inline: 02 30 00 00 FF 06
+  inline: 10 31 {c} FF
+  inline: 03 30 00 00 0F F8 1E 3F 28 01 01 00 00 0F F8
+  inline: FE 01 00
+end
+
+// API F7
+sleep(sec)
+  second = sec
+  inline: FE 05 01 00 00 00 09
+  inline: 02 30 00 00 FF 42
+  inline: 02 31 00 00 00 01
+  inline: 10 32 {second} FF
+  inline: 03 30 00 00 0F F7 1E 3F 28 01 01 00 00 0F F7
+  inline: FE 01 00
+end
+
+// API F6
+read()
+  inline: FE 05 01 00 00 00 0d
+  inline: 02 30 00 00 FF 43
+  inline: 02 31 00 00 00 02
+  inline: 03 30 00 00 0F F6 1E 3F 28 01 01 00 00 0F F6
+  inline: FE 01 00
+end
+
+// API F5
+rand(range)
+  ranger = range
+  inline: FE 05 01 00 00 00 13
+  inline: 02 30 00 00 FF 49
+  inline: 10 31 {ranger} FF
+  inline: 03 30 00 00 0F F5 1E 3F 28 01 01 00 00 0F F5
+  inline: FE 01 00
 end

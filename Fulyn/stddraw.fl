@@ -16,7 +16,6 @@ drawpoint(x, y, color)
   inline: 10 34 {colord} FF
   inline: 03 30 00 00 0F FF 1E 3F 28 01 01 00 00 0F FF
   inline: FE 01 00
-  0
 end
 
 
@@ -37,7 +36,6 @@ drawline(x0, x1, y0, y1, color)
   inline: 10 36 {colord} FF
   inline: 03 30 00 00 0F FE 1E 3F 28 01 01 00 00 0F FE
   inline: FE 01 00
-  0
 end
 
 // API FD
@@ -50,14 +48,13 @@ fillrect(x, y, sizex, sizey, color)
   inline: FE 05 01 00 00 00 04
   inline: 02 30 00 00 FF 46
   inline: 02 31 00 00 00 00
-  inline: 10 32 {xf} FF
-  inline: 10 33 {yf} FF
-  inline: 10 34 {sxf} FF
-  inline: 10 35 {syf} FF
+  inline: 10 32 {sxf} FF
+  inline: 10 33 {syf} FF
+  inline: 10 34 {xf} FF
+  inline: 10 35 {yf} FF
   inline: 10 36 {colorf} FF
   inline: 03 30 00 00 0F FD 1E 3F 28 01 01 00 00 0F FD
   inline: FE 01 00
-  0
 end
 
 // API FC
@@ -70,12 +67,11 @@ filloval(x, y, sizex, sizey, color)
   inline: FE 05 01 00 00 00 05
   inline: 02 30 00 00 FF 47
   inline: 02 31 00 00 00 00
-  inline: 10 32 {xf} FF
-  inline: 10 33 {yf} FF
-  inline: 10 34 {sxf} FF
-  inline: 10 35 {syf} FF
+  inline: 10 32 {sxf} FF
+  inline: 10 33 {syf} FF
+  inline: 10 34 {xf} FF
+  inline: 10 35 {yf} FF
   inline: 10 36 {colorf} FF
   inline: 03 30 00 00 0F FC 1E 3F 28 01 01 00 00 0F FC
   inline: FE 01 00
-  0
 end

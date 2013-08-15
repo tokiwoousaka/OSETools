@@ -9,12 +9,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Fulyn")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Fulyn compiler")]
+[assembly: AssemblyDescription("Fulyn - The Programming Language")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("lambdalice")]
 [assembly: AssemblyProduct("Fulyn")]
-[assembly: AssemblyCopyright("Copyright 2013")]
+[assembly: AssemblyCopyright("Copyright (c) lambdalice 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

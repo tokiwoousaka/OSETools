@@ -1,0 +1,42 @@
+solve :: [int => int]
+write4 :: [int => int => int => int => int]
+fizzbuzz :: [int]
+fizz :: [int]
+buzz :: [int]
+
+main
+  for(1, x :: int => loq(x, 100), y :: int => add(y, 1), z :: int => solve(z))
+end
+
+solve(x)
+  xfz = x
+  ? 0xFFFFFFFF
+  | eql(mod(xfz, 15), 0) -> fizzbuzz()
+  | eql(mod(xfz, 3), 0) -> fizz()
+  | eql(mod(xfz, 5), 0) -> buzz()
+  | () -> putnum(xfz, 0x0a)
+end
+
+write4(a, b, c, d)
+  aw = a; bw = b
+  cw = c; dw = d
+  putchar(aw); putchar(bw)
+  putchar(cw); putchar(dw)
+end
+
+fizzbuzz()
+  write4('f', 'i', 'z', 'z')
+  write4('b', 'u', 'z', 'z')
+  putchar(0x0a)
+end
+
+fizz()
+  write4('f', 'i', 'z', 'z')
+  putchar(0x0a)
+end
+
+buzz()
+  write4('b', 'u', 'z', 'z')
+  putchar(0x0a)
+end
+

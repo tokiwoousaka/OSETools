@@ -1,8 +1,7 @@
 gcd :: [int => int => int]
-a :: int
 
 main
-  a = gcd(1547, 2093)
+  putnum(gcd(1547, 2093), 0x0a)
 end
 
 gcd(x, y)
@@ -11,10 +10,10 @@ gcd(x, y)
   yg = y
   xg = ? les(xg, yg)
        | true -> yg
-	   | false -> xg
+       | false -> xg
   yg = ? eql(xg, tmp)
        | true -> yg
-	   | false -> tmp
+       | false -> tmp
   ? mod(xg, yg)
   | 0 -> yg
   | () -> gcd(yg, mod(xg, yg))

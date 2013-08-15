@@ -6,18 +6,47 @@ using Alice.Extensions;
 
 namespace Fulyn
 {
+    class FulynOption
+    {
+        public static bool SilentMode { get; set; }
+
+        public static void DebugWrite(string text)
+        {
+            if(!SilentMode)
+                Console.WriteLine(text);
+        }
+    }
 
 	class Program
 	{
 		public static void Main(string[] args)
 		{
+            if (args.Length == 0)
+            {
+                Console.WriteLine(
+@"Usage: 
+
+fulyn [options] [filenames]
+
+Options: 
+
+  --output, -o [path] ... set output file name
+  --silent, -s        ... silent mode ");
+                return;
+            }
+
             var list = new List<string>(args);
             var output = "a.out";
             list.ToArray().ForEach(x =>
                 {
-                    if (x.Contains("output") && x.Contains("="))
+                    if ((x.Contains("--output") || x.Contains("-o")) && x.Contains("="))
                     {
-                        output = x.Replace("output", "").Replace(" ", "").Replace("=", "");
+                        output = x.Replace("--output", "").Replace("-o","").Replace(" ", "").Replace("=", "");
+                        list.Remove(x);
+                    }
+                    else if (x.Contains("--silent") || x.Contains("-s"))
+                    {
+                        FulynOption.SilentMode = true;
                         list.Remove(x);
                     }
                 });
@@ -35,7 +64,7 @@ namespace Fulyn
 
             File.Delete(output);
 
-            Console.WriteLine("compile log:");
+            FulynOption.DebugWrite("compile log:");
             var cmp = new FulynCompiler(output);
             cmp.Parse(code);
             cmp.Compile();

@@ -71,6 +71,12 @@ namespace Fulyn
         {
             var buf = new List<string>();
             var seek = false;
+
+            // main
+            var maintype =  new FuncType() { ReturnType = new IntType() } ;
+            global.Add("main", maintype);
+            yield return new Declare() { Identity = "main", Type = maintype };
+
             foreach (var s in lines)
             {
                 if (!seek)
@@ -128,7 +134,7 @@ namespace Fulyn
                 var body = lines[0].SkipWhile(x => x != '(').JoinToString();
                 var id = lines[0].TakeWhile(x => x != '(').JoinToString();
                 var args = body.Length > 0 ? body.Remove(body.Length - 1).Remove(0, 1).Split(',').ToArray() : new string[] { };
-                var type = id == "main" ? new FuncType() : (FuncType)global[id];
+                var type = id == "main" ? new FuncType() { ReturnType = new IntType() } : (FuncType)global[id];
                 if (id != "main")
                     type.ArgsType.Zip(args, Tuple.Create).ForEach(x => local.Add(x.Item2, x.Item1));
                 ret = new Function()
@@ -150,7 +156,7 @@ namespace Fulyn
                     Identity = id,
                     Args = body.Take(body.Count() - 1).ToArray(),
                     Stmts = new[] { new Subst() { Identity = Subst.Trash, Expr = ParseExpr(body.Last()) } },
-                    Type = id == "main" ? new FuncType() : (FuncType)global[id]
+                    Type = id == "main" ? new FuncType() { ReturnType = new IntType() } : (FuncType)global[id]
                 };
             }
 
@@ -166,27 +172,11 @@ namespace Fulyn
         {
             var _ = 0;
             // 整数リテラル
-            if (text.StartsWith("0x") || text.All(char.IsDigit))
-                return new IntLiteral() { Value = int.Parse(text.Replace("0x", ""), text.Contains("0x") ? System.Globalization.NumberStyles.HexNumber : System.Globalization.NumberStyles.Any) };
-
-            // lambda
-            else if (text.Contains("=>"))
+            if (text.StartsWith("'") || text.StartsWith("0x") || text.All(char.IsDigit))
             {
-                var x = text.ParseIndent("(", "=>", ")").Select(y => y.Split(new []{"::"}, StringSplitOptions.RemoveEmptyEntries));
-                var type = (FuncType)ParseType("[" + x.Take(x.Count() - 1).Select(y => y[1] + " => ").JoinToString() + "int]");
-                var args = x.Take(x.Count() - 1).Select(y => y[0]).ToArray();
-                foreach (var t in type.ArgsType.Zip(args, Tuple.Create))
-                    local.Add(t.Item2, t.Item1);
-                var expr = ParseExpr(x.Last().First());
-                type.ReturnType = expr.Type;
-                foreach (var t in args)
-                    local.Remove(t);
-                return new LambdaLiteral() 
-                { 
-                    Args = args, 
-                    Expr = expr,
-                    Type = type
-                };
+                var num = text.StartsWith("'") ? (int)text.Skip(1).First()
+                    : int.Parse(text.Replace("0x", ""), text.Contains("0x") ? System.Globalization.NumberStyles.HexNumber : System.Globalization.NumberStyles.Any);
+                return new IntLiteral() { Value =  num};
             }
 
             // パターンマッチ
@@ -219,11 +209,11 @@ namespace Fulyn
             }
 
             // 関数呼び出し
-            else if (text.Contains("(") && !text.StartsWith("("))
+            else if (text.Contains("(") && !text.StartsWith("(") && text.TakeWhile(x => x != '(').All(char.IsLetterOrDigit))
             {
                 var name = text.TakeWhile(x => x != '(').JoinToString();
                 var body = text.SkipWhile(x => x != '(').JoinToString();
-                var args = body.Remove(body.Length - 1).Remove(0, 1).ParseIndent("(",",",")").Select(ParseExpr).ToArray();
+                var args = body.Remove(body.Length - 1).Remove(0, 1).ParseIndent("(", ",", ")").Select(ParseExpr).ToArray();
                 var error = new Error<IType>(() => ((FuncType)(global.Any(x => x.Key == name) ? global : local).FirstOrDefault(x => x.Key == name).Value).ReturnType);
                 if (error.IsError)
                     throw new FulynException(FulynErrorCode.Undefined, "関数 \"" + name + "\" は定義されていません。");
@@ -232,6 +222,26 @@ namespace Fulyn
                     Identity = name,
                     Args = args,
                     Type = error.Value
+                };
+            }
+
+            // lambda
+            else if (text.Contains("=>"))
+            {
+                var x = text.ParseIndent("(", "=>", ")").Select(y => y.Split(new[] { "::" }, StringSplitOptions.RemoveEmptyEntries));
+                var type = (FuncType)ParseType("[" + x.Take(x.Count() - 1).Select(y => y[1] + " => ").JoinToString() + "int]");
+                var args = x.Take(x.Count() - 1).Select(y => y[0]).ToArray();
+                foreach (var t in type.ArgsType.Zip(args, Tuple.Create))
+                    local.Add(t.Item2, t.Item1);
+                var expr = ParseExpr(x.Last().First());
+                type.ReturnType = expr.Type;
+                foreach (var t in args)
+                    local.Remove(t);
+                return new LambdaLiteral()
+                {
+                    Args = args,
+                    Expr = expr,
+                    Type = type
                 };
             }
 
@@ -269,7 +279,7 @@ namespace Fulyn
                 return new Inline() { Text = text.Replace("inline:", "") };
 
             // 代入
-            else if (text.Contains("="))
+            else if (text.Contains("=") && text.TakeWhile(x => x != '=').All(x => char.IsLetterOrDigit(x) || new[] { '$', '_' }.Contains(x)))
             {
                 var x = text.Split('=');
                 var name = x[0]; var expr = ParseExpr(x.Skip(1).JoinToString("="));
@@ -279,7 +289,7 @@ namespace Fulyn
             }
 
             // 宣言
-            else if (text.Contains("::"))
+            else if (text.Contains("::") && text.TakeWhile(x => x != '=').All(x => char.IsLetterOrDigit(x) || new[] { '$', '_' }.Contains(x)))
             {
                 var x = text.Split(new[] { "::" }, StringSplitOptions.None);
                 return new Declare() { Identity = x[0], Type = ParseType(x[1]) };
