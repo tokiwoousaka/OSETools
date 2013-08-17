@@ -350,6 +350,9 @@ namespace Fulyn
             // 関数のラベル
             var labelnum = gfunc.First(x => x.Key == f.Identity).Value;
             funcend = ose.Labels.Lock();
+            var tailcalab = 0;
+            if (f.TailCall)
+                tailcalab = ose.Labels.Lock();
 
             FulynOption.DebugWrite("\nfunction: " + f.Identity);
             
@@ -371,6 +374,13 @@ namespace Fulyn
             // これで自動で戻り値が返される
             lfunc.Add("_", 0x31); lfunc.Add("$", 0x31);
             lval.Add("_", 0x30); lval.Add("$", 0x30);
+
+            // TailCall
+            if (f.TailCall)
+            {
+                ose.Emit(OSECode6.Label, 0x01, tailcalab);
+                gfunc[f.Identity] = tailcalab;
+            }
             
             // 引数レジスタは破壊可能なので全部解放
             ose.FuncRegister.Reset(); ose.FuncPegister.Reset();
@@ -382,6 +392,7 @@ namespace Fulyn
             ose.LocalRegister.Reset();
             ose.LocalPegister.Reset();
             lfunc.Clear(); lval.Clear();
+            gfunc[f.Identity] = labelnum;
 
             // 関数の終わり
             ose.Emit(OSECode6.Label, 0x01, funcend);

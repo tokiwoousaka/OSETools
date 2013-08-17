@@ -2,6 +2,7 @@
 drawline :: [int => int => int => int => int => int]
 fillrect :: [int => int => int => int => int => int]
 filloval :: [int => int => int => int => int => int]
+inkey :: [int]
 
 // API FF
 drawpoint(x, y, color)
@@ -73,5 +74,14 @@ filloval(x, y, sizex, sizey, color)
   inline: 10 35 {yf} FF
   inline: 10 36 {colorf} FF
   inline: 03 30 00 00 0F FC 1E 3F 28 01 01 00 00 0F FC
+  inline: FE 01 00
+end
+
+// API F4
+inkey()
+  inline: FE 05 01 00 00 00 0d
+  inline: 02 30 00 00 FF 43
+  inline: 02 31 00 00 00 01
+  inline: 03 30 00 00 0F F4 1E 3F 28 01 01 00 00 0F F4
   inline: FE 01 00
 end

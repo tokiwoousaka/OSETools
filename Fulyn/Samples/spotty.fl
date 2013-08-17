@@ -1,5 +1,5 @@
 indx :: int; indy :: int; color :: int
-main
+main : tailcall
   ? eql(0, color) 
   | true -> openwin(256, 256) 
   | false -> 0

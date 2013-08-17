@@ -10,7 +10,7 @@ main
   draw()
 end
 
-draw()
+draw() : tailcall
   draw2()
   winy = 0
   winx = add(winx, 1)
@@ -19,7 +19,7 @@ draw()
   | false -> draw()
 end
 
-draw2()
+draw2() : tailcall
   drawpoint(winx, winy, col)
   winy = add(winy, 1)
   col = add(col, 1)

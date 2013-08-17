@@ -95,7 +95,7 @@ namespace Fulyn
                         funcs.Add(new[] { s });
 
                     // 複文関数の場合、舐める
-                    else if (s.Contains("(") || s == "main")
+                    else if (s.Contains("(") || s.StartsWith("main"))
                         seek = true;
                 }
 
@@ -131,6 +131,12 @@ namespace Fulyn
             // 複文
             if (lines.Length > 1)
             {
+                var tailcall = false;
+                if (lines[0].Contains(":tailcall"))
+                {
+                    tailcall = true;
+                    lines[0] = lines[0].Split(':')[0];
+                }
                 var body = lines[0].SkipWhile(x => x != '(').JoinToString();
                 var id = lines[0].TakeWhile(x => x != '(').JoinToString();
                 var args = body.Length > 0 ? body.Remove(body.Length - 1).Remove(0, 1).Split(',').ToArray() : new string[] { };
@@ -142,7 +148,8 @@ namespace Fulyn
                     Identity = id,
                     Args = args,
                     Stmts = lines.Skip(1).TakeWhile(x => !x.StartsWith("end")).Select(ParseStmt).ToArray(),
-                    Type = type
+                    Type = type,
+                    TailCall = tailcall
                 };
             }
 
@@ -172,7 +179,7 @@ namespace Fulyn
         {
             var _ = 0;
             // 整数リテラル
-            if (text.StartsWith("'") || text.StartsWith("0x") || text.All(char.IsDigit))
+            if (text.StartsWith("-") || text.StartsWith("'") || text.StartsWith("0x") || text.All(char.IsDigit))
             {
                 var num = text.StartsWith("'") ? (int)text.Skip(1).First()
                     : int.Parse(text.Replace("0x", ""), text.Contains("0x") ? System.Globalization.NumberStyles.HexNumber : System.Globalization.NumberStyles.Any);
@@ -202,7 +209,7 @@ namespace Fulyn
             }
 
             // 演算子
-            else if (Optr.Operators.Keys.Any(text.Contains))
+            else if (Optr.Operators.Keys.Any(text.Contains) && !Optr.Operators.Keys.Any(text.StartsWith))
             {
                 throw new NotImplementedException();
                 // TODO: 演算子はプリプロセス時に処理すべきか、コンパイル時に処理するべきか
@@ -266,7 +273,7 @@ namespace Fulyn
 
             // func
             var x = text.Remove(0, 1).Remove(text.Length - 2).ParseIndent("[", "=>", "]");
-            return new FuncType() { ReturnType = ParseType(x.Last()), ArgsType = x.Take(x.Count() - 1).Select(ParseType).ToArray() };
+            return new FuncType() { ReturnType = ParseType(x.Last()), ArgsType = x.Take(x.Count() - 1).Select(ParseType).ToArray()};
         }
 
         /// <summary>

@@ -1,0 +1,29 @@
+draw :: [int]
+ballx :: int
+bally :: int
+rangex :: int
+rangey :: int
+
+main
+  openwin(256, 256)
+  bally = 0; ballx = 90
+  rangex = 1; rangey = 1
+  draw()
+end
+
+draw() : tailcall
+  rangex = ? -1
+           | les(ballx, 1) -> 1
+           | goq(ballx, 240) -> -1
+           | () -> rangex
+  rangey = ? -1
+           | les(bally, 1) -> 1
+           | goq(bally, 240) -> -1
+           | () -> rangey
+  filloval(ballx, bally, 16, 16, 0xFF0000)
+  sleep(10)
+  filloval(ballx, bally, 16, 16, 0x000000)
+  ballx = add(ballx, rangex)
+  bally = add(bally, rangey)
+  draw()
+end

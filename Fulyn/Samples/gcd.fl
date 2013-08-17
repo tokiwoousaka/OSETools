@@ -4,7 +4,7 @@ main
   putnum(gcd(1547, 2093), 0x0a)
 end
 
-gcd(x, y)
+gcd(x, y) : tailcall
   tmp = x
   xg = x
   yg = y

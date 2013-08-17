@@ -5,12 +5,12 @@ fizz :: [int]
 buzz :: [int]
 
 main
-  for(1, x :: int => loq(x, 100), y :: int => add(y, 1), z :: int => solve(z))
+  for(1, x :: int => loq(x, 10000), y :: int => add(y, 1), z :: int => solve(z))
 end
 
 solve(x)
   xfz = x
-  ? 0xFFFFFFFF
+  ? -1
   | eql(mod(xfz, 15), 0) -> fizzbuzz()
   | eql(mod(xfz, 3), 0) -> fizz()
   | eql(mod(xfz, 5), 0) -> buzz()

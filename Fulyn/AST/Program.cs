@@ -27,5 +27,6 @@ namespace Fulyn.AST
         public FuncType Type { get; set; }
         public string[] Args { get; set; }
         public IStmt[] Stmts { get; set; }
+        public bool TailCall { get; set; }
     }
 }

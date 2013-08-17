@@ -28,6 +28,7 @@ namespace Fulyn.AST
     {
         public IType[] ArgsType { get; set; }
         public IType ReturnType { get; set; }
+        public bool TailCall { get; set; }
 
         public bool IsSameType(IType obj)
         {
