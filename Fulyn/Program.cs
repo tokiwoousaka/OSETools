@@ -10,6 +10,8 @@ namespace Fulyn
     {
         public static bool SilentMode { get; set; }
 
+        public static bool ReadableMode { get; set; }
+
         public static void DebugWrite(string text)
         {
             if(!SilentMode)
@@ -31,12 +33,14 @@ fulyn [options] [filenames]
 Options: 
 
   --output, -o [path] ... set output file name
-  --silent, -s        ... silent mode ");
+  --silent, -s        ... silent mode
+  --readable, -r      ... show binary more readable(compile a little slowly)");
                 return;
             }
 
             var list = new List<string>(args);
             var output = "a.out";
+            var executePath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
             list.ToArray().ForEach(x =>
                 {
                     if ((x.Contains("--output") || x.Contains("-o")) && x.Contains("="))
@@ -49,9 +53,21 @@ Options:
                         FulynOption.SilentMode = true;
                         list.Remove(x);
                     }
+
+                    else if (x.Contains("--readable") || x.Contains("-r"))
+                    {
+                        FulynOption.ReadableMode = true;
+                        list.Remove(x);
+                    }
                 });
+            if (!new[] { Path.Combine(Environment.CurrentDirectory, "stdlib.fl"), Path.Combine(executePath, "stdlib.fl") }.Any(File.Exists))
+            {
+                Console.WriteLine("fatal: Couldn't find stdlib.fl in " + Path.Combine(Environment.CurrentDirectory, "stdlib.fl") + " or " + Path.Combine(executePath, "stdlib.fl"));
+                return;
+            }
 
             var code = list.Concat(new []{"stdlib.fl"})
+                           .Select(x => new[] { Path.Combine(Environment.CurrentDirectory,x), Path.Combine(executePath, x) }.First(File.Exists))
                            .Reverse()
                            .Select(x => from a in File.OpenRead(x).ToUsing()
                                         from b in new StreamReader(a).ToUsing()

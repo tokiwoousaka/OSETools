@@ -14,6 +14,7 @@ namespace OSC
         BinaryWriter writer;
 
         public bool SilentMode { get; set; }
+        public bool ReadableMode { get; set; }
         public Numbers<int> Labels { get; set; }
         public Numbers<byte> LocalRegister { get; set; }
         public Numbers<byte> GlobalRegister { get; set; }
@@ -22,7 +23,7 @@ namespace OSC
         public Numbers<byte> GlobalPegister { get; set; }
         public Numbers<byte> FuncPegister { get; set; }
         
-        public OSEGenerator(Stream output, bool silent = false)
+        public OSEGenerator(Stream output, bool silent = false, bool readable = false)
         {
             writer = new BinaryWriter(output);
             
@@ -36,6 +37,7 @@ namespace OSC
             FuncPegister = new Numbers<byte>(0x31, 11, x => (byte)x);
 
             SilentMode = silent;
+            ReadableMode = readable;
 
             // write signsture (OSE1, NOP)
             Emit(0x05, 0xE1, 0x00);
@@ -49,8 +51,8 @@ namespace OSC
         
         public void Emit(params byte[] buf)
         {
-            if(!SilentMode)
-                Console.WriteLine("emit: " + buf.Select(x => x.ToString("X2")).JoinToString(" "));
+            if (!SilentMode)
+                Console.WriteLine("emit: " + (this.ReadableMode && OSECode.AllCodes.ContainsKey(buf.First()) ? OSECode.AllCodes[buf.First()] + " " + buf.Skip(1).Select(x => x.ToString("X2")).JoinToString(" ") : buf.Select(x => x.ToString("X2")).JoinToString(" ")));
         	writer.Write(buf);
         }
         

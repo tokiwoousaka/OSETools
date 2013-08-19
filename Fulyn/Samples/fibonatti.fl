@@ -5,11 +5,10 @@ main
 end
 
 fibonatti(left, right) : tailcall
-  r = right
   next = add(left, right)
   putnum(next, 0x0a)
   ? les(next, 1000)
-  | true -> fibonatti(r, next)
+  | true -> fibonatti(right, next)
   | false -> 0
 end
 

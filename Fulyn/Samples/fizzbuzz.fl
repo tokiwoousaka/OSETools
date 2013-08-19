@@ -5,23 +5,20 @@ fizz :: [int]
 buzz :: [int]
 
 main
-  for(1, x :: int => loq(x, 10000), y :: int => add(y, 1), z :: int => solve(z))
+  for(1, x :: int => loq(x, 10000), x :: int => add(x, 1), x :: int => solve(x))
 end
 
 solve(x)
-  xfz = x
   ? -1
-  | eql(mod(xfz, 15), 0) -> fizzbuzz()
-  | eql(mod(xfz, 3), 0) -> fizz()
-  | eql(mod(xfz, 5), 0) -> buzz()
-  | () -> putnum(xfz, 0x0a)
+  | eql(mod(x, 15), 0) -> fizzbuzz()
+  | eql(mod(x, 3), 0) -> fizz()
+  | eql(mod(x, 5), 0) -> buzz()
+  | () -> putnum(x, 0x0a)
 end
 
 write4(a, b, c, d)
-  aw = a; bw = b
-  cw = c; dw = d
-  putchar(aw); putchar(bw)
-  putchar(cw); putchar(dw)
+  putchar(a); putchar(b)
+  putchar(c); putchar(d)
 end
 
 fizzbuzz()

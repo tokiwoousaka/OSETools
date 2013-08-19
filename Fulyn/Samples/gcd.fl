@@ -6,16 +6,14 @@ end
 
 gcd(x, y) : tailcall
   tmp = x
-  xg = x
-  yg = y
-  xg = ? les(xg, yg)
-       | true -> yg
-       | false -> xg
-  yg = ? eql(xg, tmp)
-       | true -> yg
+  x = ? les(x, y)
+       | true -> y
+       | false -> x
+  y = ? eql(x, tmp)
+       | true -> y
        | false -> tmp
-  ? mod(xg, yg)
-  | 0 -> yg
-  | () -> gcd(yg, mod(xg, yg))
+  ? mod(x, y)
+  | 0 -> y
+  | () -> gcd(y, mod(x, y))
 end
 

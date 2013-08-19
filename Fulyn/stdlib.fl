@@ -45,11 +45,9 @@ mod(x, y)
 end
 
 pow(x, y) : tailcall
-  xp = x
-  yp = y
-  ? gra(yp, 1)
-  | true -> mul(xp, pow(xp, sub(yp, 1)))
-  | false -> xp
+  ? gra(y, 1)
+  | true -> mul(x, pow(x, sub(y, 1)))
+  | false -> x
 end
 
 eql(x, y)
@@ -97,27 +95,21 @@ sfr(x, y)
 end
 
 for(x, comp, next, exec) : tailcall
-  xf = x
-  cmpf = comp
-  nxtf = next
-  excf = exec
-  flag = comp(xf)
+  flag = comp(x)
   ? flag
-  | true -> excf(xf)
+  | true -> exec(x)
   | false -> 0
   ? flag
-  | true -> for(nxtf(xf), cmpf, nxtf, excf)
+  | true -> for(next(x), comp, next, exec)
   | false -> 0
 end
 
 // API FB
 openwin(sizex, sizey)
-  sx = sizex
-  sy = sizey
   inline: FE 05 01 00 00 00 10
   inline: 02 30 00 00 FF 40
-  inline: 10 31 {sx} FF
-  inline: 10 32 {sy} FF
+  inline: 10 31 {sizex} FF
+  inline: 10 32 {sizey} FF
   inline: 03 30 00 00 0F FB 1E 3F 28 01 01 00 00 0F FB
   inline: FE 01 00
   0
@@ -176,21 +168,19 @@ end
 
 // API F8
 exit(code)
-  c = code
   inline: FE 05 01 00 00 00 08
   inline: 02 30 00 00 FF 06
-  inline: 10 31 {c} FF
+  inline: 10 31 {code} FF
   inline: 03 30 00 00 0F F8 1E 3F 28 01 01 00 00 0F F8
   inline: FE 01 00
 end
 
 // API F7
 sleep(sec)
-  second = sec
   inline: FE 05 01 00 00 00 09
   inline: 02 30 00 00 FF 42
   inline: 02 31 00 00 00 00
-  inline: 10 32 {second} FF
+  inline: 10 32 {sec} FF
   inline: 03 30 00 00 0F F7 1E 3F 28 01 01 00 00 0F F7
   inline: FE 01 00
 end
@@ -206,10 +196,9 @@ end
 
 // API F5
 rand(range)
-  ranger = range
   inline: FE 05 01 00 00 00 13
   inline: 02 30 00 00 FF 49
-  inline: 10 31 {ranger} FF
+  inline: 10 31 {range} FF
   inline: 03 30 00 00 0F F5 1E 3F 28 01 01 00 00 0F F5
   inline: FE 01 00
 end

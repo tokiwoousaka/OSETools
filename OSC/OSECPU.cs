@@ -4,6 +4,18 @@ using System;
 
 namespace OSC
 {
+    public static class OSECode
+    {
+        public static Dictionary<int, string> AllCodes
+        {
+            get
+            {
+                var getdic = new Func<Type, KeyValuePair<int, string>[]>(x => Enum.GetNames(x).Zip(Enum.GetValues(x).Cast<int>(), Tuple.Create).ToDictionary(y => y.Item2, y => y.Item1).ToArray());
+                return getdic(typeof(OSECode1)).Union(getdic(typeof(OSECode2))).Union(getdic(typeof(OSECode3))).Union(getdic(typeof(OSECode4))).Union(getdic(typeof(OSECode6))).Union(getdic(typeof(OSECode8))).Union(getdic(typeof(OSECode11))).Where(x => x.Value != "Copy").ToDictionary(x => x.Key, x => x.Value);
+            }
+        }
+    }
+
     public enum OSECode1
     {
         NoOp = 0x00

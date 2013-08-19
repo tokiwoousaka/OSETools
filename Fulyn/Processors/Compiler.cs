@@ -24,7 +24,7 @@ namespace Fulyn
         public FulynCompiler(string outputFile)
         {
             ms = File.Open(outputFile, FileMode.OpenOrCreate, FileAccess.Write);
-            ose = new OSEGenerator(ms, FulynOption.SilentMode);
+            ose = new OSEGenerator(ms, FulynOption.SilentMode, FulynOption.ReadableMode);
             AST = new FulynProg();
         }
 
@@ -113,16 +113,22 @@ namespace Fulyn
                 ose.Emit(OSECode6.PLoadImm, result, lambdalab);
                 ose.EmitMacro(Macro.Goto, new MacroValues(to => lambdaend));
                 ose.Emit(OSECode6.Label, 0x01, lambdalab);
+                ose.Emit(0x3C, 0x00, 0x20, 0x20, 0x00, 0x00, 0x00);
                 ose.FuncRegister.Local(); ose.FuncPegister.Local();
-                foreach (var arg in args.Zip(locals, Tuple.Create))
+                var zipped = args.Zip(locals, Tuple.Create);
+                foreach (var arg in zipped)
                 {
+                    FulynOption.DebugWrite("lambda arg " + arg.Item1.Item1 + ": " + arg.Item2);
                     ose.Emit(arg.Item1.Item2.GetType() == typeof(IntType) ? OSECode3.Copy : OSECode3.PCopy, arg.Item2, (arg.Item1.Item2.GetType() == typeof(IntType) ? ose.FuncRegister : ose.FuncPegister).Lock());
                     (arg.Item1.Item2.GetType() == typeof(IntType) ? lval : lfunc).Add(arg.Item1.Item1, arg.Item2);
                 }
                 CompileExpr(lambda.Expr, returnto: (byte)(lambda.Expr.Type.GetType() == typeof(IntType) ? 0x30 : 0x31));
+                ose.Emit(0x3D, 0x00, 0x20, 0x20, 0x00, 0x00, 0x00);
                 ose.EmitMacro(Macro.PGoto, new MacroValues(), 0x30);
                 ose.Emit(OSECode6.Label, 0x01, lambdaend);
                 ose.FuncRegister.Unlocal(); ose.FuncPegister.Unlocal();
+                args.Select(x => (x.Item2.GetType() == typeof(IntType) ? ose.LocalRegister : ose.LocalPegister)).Zip(locals, Tuple.Create).ForEach(x => x.Item1.Free(x.Item2));
+                zipped.ForEach(x => (x.Item1.Item2.GetType() == typeof(IntType) ? lval : lfunc).Remove(x.Item1.Item1));
             }
 
 
@@ -359,12 +365,21 @@ namespace Fulyn
             // 関数の始まり
             ose.EmitMacro(Macro.FuncStart, new MacroValues(label => labelnum));
 
+            // TailCall
+            if (f.TailCall)
+            {
+                ose.Emit(OSECode6.Label, 0x01, tailcalab);
+                gfunc[f.Identity] = tailcalab;
+            }
+
             // 引数をDictionaryに加える
             if(f.Identity != "main")
                 f.Args.Zip(f.Type.ArgsType, Tuple.Create).ToArray().ForEach(x =>
             {
                 var areg = (x.Item2.GetType() == typeof(IntType) ? ose.FuncRegister : ose.FuncPegister).Lock();
-                (x.Item2.GetType() == typeof(IntType) ? lval : lfunc).Add(x.Item1, areg);
+                var locopy = (x.Item2.GetType() == typeof(IntType) ? ose.LocalRegister : ose.LocalPegister).Lock();
+                ose.Emit(x.Item2.GetType() == typeof(IntType) ? OSECode3.Copy : OSECode3.PCopy, locopy, areg);
+                (x.Item2.GetType() == typeof(IntType) ? lval : lfunc).Add(x.Item1, locopy);
             });
 
             // ポインタを返すか
@@ -374,13 +389,6 @@ namespace Fulyn
             // これで自動で戻り値が返される
             lfunc.Add("_", 0x31); lfunc.Add("$", 0x31);
             lval.Add("_", 0x30); lval.Add("$", 0x30);
-
-            // TailCall
-            if (f.TailCall)
-            {
-                ose.Emit(OSECode6.Label, 0x01, tailcalab);
-                gfunc[f.Identity] = tailcalab;
-            }
             
             // 引数レジスタは破壊可能なので全部解放
             ose.FuncRegister.Reset(); ose.FuncPegister.Reset();
